@@ -1,0 +1,185 @@
+export const metadata = {
+  title: "更新日志",
+};
+
+- 2025-08-24:
+  - 支持在悬停预览时解码 JWT 和 Unicode 字符串；
+  - 修复 inlay hints 在代码被折叠时重复展示的问题；
+- 2025-08-17:
+  - 修复右侧编辑器没有树时，inlay hints 依然展示的问题；
+  - 修复主面板溢出、左侧面板折叠动画不生效的问题；
+  - 优化面板大小调整和折叠提示的用户体验；
+  - 修复由侧边栏引起的 CLS 问题；
+  - 修复 `sitemap` 缺少 `/tutorial` 的问题；
+  - 修复生成 HTML 字符串时的 XSS 问题，为 `genPreviewHTML` 增加错误处理；
+- 2025-08-16:
+  - 支持在左侧编辑器悬停预览 URL、颜色、图片等；
+  - 支持在左侧编辑器展示子元素数量；
+  - 右上角全屏按钮改为浏览器全屏；
+  - 左右两侧面板折叠增加防呆设计；
+  - 状态栏展示的 JSON path 增加复制按钮（建议来自 [@yuanzhizhuo](https://support.qq.com/products/670462/post/173252333628061029/) 和 [@游客—钟影](https://support.qq.com/products/670462/post/175100554248744010/))）；
+  - monaco editor 升级到 0.52.2 以尝试解决 [@Zzz 反馈的问题](https://support.qq.com/products/670462/post/175076261031846722/)；
+  - 统一 graph 视图下空数组和空对象显示的子元素个数；
+- 2025-08-10:
+  - 增加「使用教程」页面；
+  - 「URL 转 JSON」支持递归解析；
+  - fix 「URL 转 JSON」未处理重复 key 的问题；
+  - 改进解析错误时的状态栏样式；
+- 2025-08-06:
+  - 支持 graph 和 table 视图展示子元素数量（建议来自 [@光翟](https://support.qq.com/products/670462/profile/16/)、[@缺点](https://support.qq.com/products/670462/profile/22/)）；
+  - 新增复制按钮；
+  - fix 文本比较无差异时提示「存在差异」的问题；
+- 2025-08-04:
+  - fix key 输出时未转义的问题 [#88](https://github.com/loggerhead/json4u/issues/88)；
+- 2025-07-15:
+  - 升级 Next.js 到 14.2.30 版本以解决 [CVE-2025-29927](https://vercel.com/blog/postmortem-on-next-js-middleware-bypass)；
+  - 国内 CDN 切换至[又拍云](https://www.upyun.com/)；
+- 2025-06-08:
+  - fix 转义与反转义不对称问题并重构实现 (By [@钟意](https://github.com/ThatCoders))；
+- 2024-12-09:
+  - 支持使用 JSON path 过滤；
+  - 提升编辑器加载速度；
+- 2024-11-24:
+  - 支持左右两侧面板位置同步，并去除「显示在编辑器中的位置」按钮；
+  - 调整 UI 让右侧视图有更多空间展示内容；
+  - 去除 table 视图中鼠标停留时展示的浮窗；
+  - 侧边栏开关支持 hover 时展示功能描述；
+  - 持久化记录鼠标与触摸板切换按钮的状态；
+  - 将命令搜索改为模糊匹配；
+  - fix graph 视图有时不能正常展示的问题；
+  - fix 如果编辑器中是小 JSON，从 table 视图切换到 graph 视图时，graph 视图不能正常展示的问题；
+  - fix 有时候移动视窗时，graph 会不稳定的跳动；
+  - fix "The database connection is closing" 的错误；
+- 2024-11-10:
+  - 优化编辑器加载速度；
+  - 优化 graph 视图在切换 JSON tree 时的渲染速度；
+  - graph 视图支持通过 popover 展示字段值 (By [@haecheonlee](https://github.com/haecheonlee))；
+  - fix 搜索高亮有时不生效的问题；
+  - fix 空值导致 table 视图展示 "miss" 的问题；
+  - fix 编辑器为空时输入文本会重置光标的问题；
+- 2024-11-02:
+  - graph 视图支持搜索；
+  - 调整 graph 视图选中节点的边框颜色；
+  - fix 部分场景下选中的边未正常高亮的问题；
+  - fix 当 input 事件比 paste 事件先触发时，不能正常生成 graph 或 table 视图；
+- 2024-10-18:
+  - 改变颜色以表达图节点的折叠状态 (By [@haecheonlee](https://github.com/haecheonlee))；
+  - 调整为展示 jq 输入框时再懒加载 jq.wasm；
+- 2024-10-16:
+  - 「折叠兄弟节点」调整为隐藏兄弟节点，而不是隐藏兄弟节点的后代节点；
+  - fix URL 转 JSON、python dict 转 JSON 报错；
+  - fix virtual graph 折叠后重新回到视图时又展开的问题；
+- 2024-10-12:
+  - 重新设计首页；
+  - 删除 service worker 以提升页面加载速度；
+  - fix [#46](https://github.com/loggerhead/json4u/pull/46)；
+  - fix 生成 table 视图时栈溢出的问题；
+  - fix 同一行存在多个 diff 时，颜色加深的问题；
+  - fix jq input 和 swap command 快捷键冲突；
+- 2024-10-07:
+  - 支持 sticky scroll；
+  - fix [#41](https://github.com/loggerhead/json4u/pull/41)；
+- 2024-10-05:
+  - 优化大 JSON 下 graph 的性能（>= 1MB）；
+  - fix window 下的体验问题；
+  - fix safari 下侧边栏的样式问题；
+- 2024-08-24:
+  - 3.0.0 上线：支持 graph、table view mode、重构 UI 以提供更好的扩展性、支持 command search 并提供命令执行反馈;
+- 2024-02-17:
+  - feedback 改回 github issues；
+  - not-found 页面自动重定向；
+- 2024-02-06:
+  - 支持分享；
+  - 优化数组比较的性能；
+  - 优化 json path 展示；
+- 2024-01-27:
+  - 支持上传、下载文件；
+  - fix footer 样式问题；
+  - fix 第一次点击拖动条时宽度被重置；
+- 2024-01-20:
+  - 支持 CSV 与 JSON 互转；
+- 2024-01-14:
+  - 支持 feedback；
+  - 支持拖动折叠左右两侧编辑器、持久化记录拖动位置；
+  - jq 命令固定从左侧编辑器读取输入，右侧编辑器输出；
+  - 格式化缩进改为 2 个空格；
+  - 更新 icon；
+  - fix 光标落在逗号处时展示的 JSON path；
+- 2024-01-01:
+  - fix switch 展示问题；
+  - 优化 jq 加载；
+- 2023-12-23:
+  - fix 文本比较失效
+- 2023-12-17:
+  - 改进格式化算法；
+  - 使用 web worker 提升性能；
+  - 部分资源迁移到 CDN 域名，增加缓存时间；
+  - 增加 e2e 测试；
+  - fix jq 无法使用的问题；
+- 2023-12-10:
+  - 支持 [jq 1.7](https://jqlang.github.io/jq/tutorial/) 全部功能；
+  - 优化 inline diff 性能；
+  - 优化 monaco CDN 缓存；
+  - fix 通过菜单项升序排序时未自动格式化的 bug；
+- 2023-12-02:
+  - 支持 [jq](https://jqlang.github.io/jq/tutorial/) 核心功能；
+  - 优化格式化算法；
+  - fix guide 页无序列表样式问题；
+- 2023-11-26:
+  - 支持嵌套解析；
+  - setting 自动读写 local storage；
+  - 将「去转义」按钮隐藏到「...」菜单中；
+  - 下线 try best to parse JSON 的功能；
+- 2023-11-19:
+  - 支持自动排序、自动格式化开关；
+  - UI 调整；
+- 2023-10-25:
+  - fix 隐藏块差异造成可读性差的问题；
+- 2023-10-14:
+  - 比较无差异时，闪烁状态栏进行提示；
+  - 状态栏改为展示左右两侧的 diff 行数；
+  - fix 状态栏文字太长时的展示问题；
+- 2023-10-06:
+  - 格式化等按钮改为作用于最后 focus 的编辑器；
+  - 支持关闭自动格式化；
+  - fix minimap 颜色错误；
+- 2023-09-30:
+  - 调整 UI 配色，对齐 github；
+  - 支持展示选中的字符数；
+  - 改进 diff 算法，减少行内差异很多时对可读性的干扰；
+- 2023-09-24:
+  - 文本 diff 支持填充块，增强阅读体验；
+  - 支持 JSON 排序后文本比较；
+  - 改进 diff 算法；
+  - 高亮差异时同时高亮行号；
+  - 下线 key 比较，避免同值 key 字段很多时（比如值为 0）难以查看 diff 结果；
+  - 「加载中...」换成动画；
+  - fix python 转 dict 部分 case 失败；
+  - 增加右侧编辑器默认大小；
+  - 支持跳转差异时从光标位置起跳；
+- 2023-09-09:
+  - 支持显示当前光标所在位置；
+  - 改为块差异，让用户能更快跳转到不同差异；
+  - fix 清空状态栏 validate 不生效的问题；
+- 2023-09-01:
+  - 支持更多折叠层级；
+  - 改进自动格式化算法；
+  - 跳转支持跳转到行内差异；
+- 2023-08-26:
+  - 支持 Python dict 转 JSON（文本替换）；
+  - fix 解析错误上下文带 tag 时状态栏显示错误；
+  - fix 文本比较时右侧解析错误信息被左侧解析错误覆盖；
+- 2023-08-22:
+  - 改进大文本的格式化性能；
+  - fix 状态栏并发更新导致的状态错误；
+- 2023-08-19:
+  - 增加功能引导文案；
+  - 重构状态栏，优化文案展示逻辑；
+  - 改进同步滚动体验；
+  - 支持通过按住 Alt 键暂停同步滚动；
+  - 支持快捷键进行折叠/展开；
+  - fix 多个行内差异颜色叠加后颜色加深的问题；
+- 2023-08-01:
+  - 2.0.0 上线：editor 从 codemirror 5 改用 monaco editor，提升大量文本时的性能；
+- 2022-01-12:
+  - 1.0.0 上线；

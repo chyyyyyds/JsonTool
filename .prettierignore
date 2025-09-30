@@ -1,0 +1,12 @@
+messages/
+.github
+.next
+node_modules/
+out
+public
+*-lock.json
+src/lib/utils.ts
+src/lib/supabase/database.types.ts
+src/components/ui/
+sentry.client.config.ts
+pnpm-lock.yaml

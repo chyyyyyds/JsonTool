@@ -1,0 +1,20 @@
+{
+  "rules": {
+    "@next/next/no-img-element": "off",
+    "no-unused-vars": "off",
+    "unused-imports/no-unused-imports": "off",
+    "import/no-cycle": "warn",
+    "no-empty": "error",
+    "no-multiple-empty-lines": "error",
+    "no-irregular-whitespace": "error",
+    "strict": ["error", "never"],
+    "linebreak-style": ["off"],
+    "quotes": ["error", "double", { "avoidEscape": true }],
+    "prefer-const": "error",
+    "react-hooks/exhaustive-deps": "off",
+    // Avoid hardcoded labels in component markup
+    "react/jsx-no-literals": "warn"
+  },
+  "extends": ["next/core-web-vitals"],
+  "plugins": ["unused-imports"]
+}

@@ -1,0 +1,90 @@
+export const metadata = {
+  title: "Changelog",
+};
+
+- 2025-08-24:
+  - Support decoding JWT and Unicode strings in hover preview.
+  - Fix the issue where inlay hints are displayed repeatedly when the code is folded.
+- 2025-08-17:
+  - Fix the issue where inlay hints are still displayed when there is no tree in the right editor.
+  - Fix the issues of the main panel overflowing and the left panel's collapse animation not working.
+  - Optimize the UX of panel resizing and collapsing.
+  - Fix the CLS issue caused by the sidebar.
+  - Fix the issue where `/tutorial` is missing from the `sitemap`.
+  - Fix the XSS issue when generating HTML strings and add error handling for `genPreviewHTML`.
+- 2025-08-16:
+  - Support hovering over to preview URLs, colors, images, etc. in the left editor.
+  - Support displaying the number of child elements in the left editor.
+  - Change the full-screen button in the top-right corner to use browser full-screen mode.
+  - Add foolproof design for collapsing the left and right panels.
+  - Add a copy button to the JSON path displayed in the status bar (Suggestions from [@yuanzhizhuo](https://support.qq.com/products/670462/post/173252333628061029/) and [@游客—钟影](https://support.qq.com/products/670462/post/175100554248744010/)).
+  - Upgrade monaco editor to 0.52.2 to try to resolve [the issue reported by @Zzz](https://support.qq.com/products/670462/post/175076261031846722/).
+  - Standardize the display of the number of child elements for empty arrays and empty objects in the graph view.
+- 2025-08-10:
+  - Added a "Tutorial" page.
+  - "URL to JSON" now supports recursive parsing.
+  - Fix the issue of unhandled duplicate keys in "URL to JSON".
+  - Improved the status bar style when parsing errors occur.
+- 2025-08-06:
+  - Support displaying the number of child elements in graph and table views (Suggestions from [@光翟](https://support.qq.com/products/670462/profile/16/), [@缺点](https://support.qq.com/products/670462/profile/22/)).
+  - Added copy button.
+  - Fix the prompt "Differences exist" appeared when there were no differences in text comparison.
+- 2025-08-04:
+  - Fix the issue that keys were not escaped during output [#88](https://github.com/loggerhead/json4u/issues/88).
+- 2025-07-15:
+  - Upgrade Next.js to version 14.2.30 to address [CVE-2025-29927](https://vercel.com/blog/postmortem-on-next-js-middleware-bypass).
+- 2025-06-08:
+  - Fix escape&unescape asymmetry and refactored implementation (By [@钟意](https://github.com/ThatCoders)).
+- 2024-12-09:
+  - Support filter via JSON path.
+  - Improve the page loading speed of the /editor page.
+- 2024-11-24:
+  - Support synchronize reveal between left and right panels, and remove "reveal position in editor" button.
+  - Adjust the UI style so that the right-side view can display more content.
+  - Remove the floating window that appears when hovering in the table view.
+  - Display the function description of toggles in the sidenav when hover.
+  - Persistently record the status of the switch button between the mouse and the touchpad.
+  - Change command search to fuzzy match.
+  - Fix the graph view cannot be displayed normally sometimes.
+  - Fix changing from table view to graph view with small JSON will not display the graph.
+  - Fix sometimes the graph would be flaky when changing the viewport.
+  - Fix "The database connection is closing" error.
+- 2024-11-10:
+  - Optimized the loading speed of the editor.
+  - Optimized the rendering speed of the graph view when switching JSON trees.
+  - The graph view supports the display of field values through popover (By [@haecheonlee](https://github.com/haecheonlee)).
+  - Fix the problem that the search highlighting sometimes does not take effect.
+  - Fix the problem that the null value causes the table view to display "miss".
+  - Fix the problem that the cursor will be reset when the editor is empty when entering text.
+- 2024-11-02:
+  - Support searching in graph mode.
+  - Change the color of the selected node.
+  - Fix the issue that sometimes selected edges are not highlighted.
+  - Fix the issue that the graph or table view is not displayed when the input event is triggered before the paste event.
+- 2024-10-18:
+  - Change the color to indicate that children nodes are collapsed. (By [@haecheonlee](https://github.com/haecheonlee))
+  - Lazy load jq.wasm when displaying jq input.
+- 2024-10-16:
+  - Change "fold siblings" to hide siblings rather than only hiding their descendant nodes.
+  - Fix the error in converting URL to JSON and converting python dict to JSON.
+  - Fix the issue where folded nodes will display when re-entering the viewport on the virtual graph.
+- 2024-10-12:
+  - Redesign landing page.
+  - Remove service worker to improve page load speed.
+  - Fix [#46](https://github.com/loggerhead/json4u/pull/46).
+  - Fix maximum call stack size exceeded when generate a big table.
+  - Fix multiple diffs within the same array will deepen the color.
+  - Fix keyshort conflict on jq input and swap command.
+- 2024-10-07:
+  - Support sticky scroll.
+  - Fix [#41](https://github.com/loggerhead/json4u/pull/41).
+- 2024-10-05:
+  - Optimize performance of graph for big JSON (>= 1MB).
+  - Fix the experience issues under Windows.
+  - Fix sidenav style problem on Safari.
+- 2024-09-24:
+  - 3.0.0 is released: support for graph and table view mode, refactoring of UI for better scalability, support for command search and feedback on command execution.
+- 2023-08-01:
+  - 2.0.0 is released: editor changed from codemirror 5 to monaco editor to improve performance with large amounts of text.
+- 2022-01-12:
+  - 1.0.0 is released.
