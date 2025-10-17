@@ -8,6 +8,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toastSucc } from "@/lib/utils";
 
 function computeSets(a: string, b: string) {
   const left = a.replace(/\r\n/g, "\n").split("\n");
@@ -40,6 +41,27 @@ export default function LineComparePanel() {
 
   const { onlyLeft, onlyRight, both } = useMemo(() => computeSets(leftText, rightText), [leftText, rightText]);
 
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toastSucc(t("Copied"));
+    } catch (err) {
+      console.error("Failed to copy:", err);
+      // 降级方案：使用传统的 document.execCommand
+      try {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+        toastSucc(t("Copied"));
+      } catch (fallbackErr) {
+        console.error("Fallback copy failed:", fallbackErr);
+      }
+    }
+  };
+
   return (
     <ResizablePanelGroup direction="horizontal" className="flex-grow">
       <ResizablePanel defaultSize={20} minSize={10}>
@@ -51,7 +73,7 @@ export default function LineComparePanel() {
                 title={t("Copy")}
                 variant="icon-outline"
                 size="sm"
-                onClick={() => navigator.clipboard.writeText(leftText)}
+                onClick={() => copyToClipboard(leftText)}
               >
                 <Copy className="icon" />
               </Button>
@@ -92,7 +114,7 @@ export default function LineComparePanel() {
                       className="h-5 w-5 p-0"
                       onClick={(ev) => {
                         ev.stopPropagation();
-                        navigator.clipboard.writeText(line);
+                        copyToClipboard(line);
                       }}
                     >
                       <Copy className="h-3 w-3" />
@@ -114,7 +136,7 @@ export default function LineComparePanel() {
                 title={t("Copy")}
                 variant="icon-outline"
                 size="sm"
-                onClick={() => navigator.clipboard.writeText(rightText)}
+                onClick={() => copyToClipboard(rightText)}
               >
                 <Copy className="icon" />
               </Button>
@@ -155,7 +177,7 @@ export default function LineComparePanel() {
                       className="h-5 w-5 p-0"
                       onClick={(ev) => {
                         ev.stopPropagation();
-                        navigator.clipboard.writeText(line);
+                        copyToClipboard(line);
                       }}
                     >
                       <Copy className="h-3 w-3" />
@@ -177,7 +199,7 @@ export default function LineComparePanel() {
                 title={t("Copy")}
                 variant="icon-outline"
                 size="sm"
-                onClick={() => navigator.clipboard.writeText(onlyLeft.join("\n"))}
+                onClick={() => copyToClipboard(onlyLeft.join("\n"))}
               >
                 <Copy className="icon" />
               </Button>
@@ -193,7 +215,7 @@ export default function LineComparePanel() {
                     variant="icon-outline"
                     size="xs"
                     className="h-5 w-5 p-0"
-                    onClick={() => navigator.clipboard.writeText(line)}
+                    onClick={() => copyToClipboard(line)}
                   >
                     <Copy className="h-3 w-3" />
                   </Button>
@@ -213,7 +235,7 @@ export default function LineComparePanel() {
                 title={t("Copy")}
                 variant="icon-outline"
                 size="sm"
-                onClick={() => navigator.clipboard.writeText(onlyRight.join("\n"))}
+                onClick={() => copyToClipboard(onlyRight.join("\n"))}
               >
                 <Copy className="icon" />
               </Button>
@@ -229,7 +251,7 @@ export default function LineComparePanel() {
                     variant="icon-outline"
                     size="xs"
                     className="h-5 w-5 p-0"
-                    onClick={() => navigator.clipboard.writeText(line)}
+                    onClick={() => copyToClipboard(line)}
                   >
                     <Copy className="h-3 w-3" />
                   </Button>
@@ -249,7 +271,7 @@ export default function LineComparePanel() {
                 title={t("Copy")}
                 variant="icon-outline"
                 size="sm"
-                onClick={() => navigator.clipboard.writeText(both.join("\n"))}
+                onClick={() => copyToClipboard(both.join("\n"))}
               >
                 <Copy className="icon" />
               </Button>
@@ -265,7 +287,7 @@ export default function LineComparePanel() {
                     variant="icon-outline"
                     size="xs"
                     className="h-5 w-5 p-0"
-                    onClick={() => navigator.clipboard.writeText(line)}
+                    onClick={() => copyToClipboard(line)}
                   >
                     <Copy className="h-3 w-3" />
                   </Button>
