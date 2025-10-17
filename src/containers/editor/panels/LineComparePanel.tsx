@@ -106,7 +106,9 @@ export default function LineComparePanel() {
           ta.focus();
           try {
             ta.setSelectionRange(targetPos, targetPos);
-          } catch {}
+          } catch {
+            // 忽略设置光标位置时的错误
+          }
         });
       }
       setPendingFocus(null);
@@ -137,7 +139,9 @@ export default function LineComparePanel() {
           ta.focus();
           try {
             ta.setSelectionRange(targetPos, targetPos);
-          } catch {}
+          } catch {
+            // 忽略设置光标位置时的错误
+          }
         });
       }
       setPendingFocus(null);

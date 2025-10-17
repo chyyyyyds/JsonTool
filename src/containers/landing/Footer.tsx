@@ -19,7 +19,6 @@ export default function Footer() {
           <span>{"© 2025 JSON For You"}</span>
         </div>
         {/* remove legal links */}
-        {isCN && <Upyun />}
         <div className="ml-auto lg:flex hidden gap-8">
           {items.map((item, i) => (
             <FooterLink key={i} title={item.title} href={item.href} />

@@ -30,7 +30,7 @@ export default function Header() {
               href={item.href as Href}
               key={item.title}
               className="pointer block w-fit hover:text-sky-500"
-              target={item.href.startsWith("/") ? "" : "_blank"}
+              target={typeof item.href === "string" && item.href.startsWith("/") ? "" : "_blank"}
             >
               <Typography variant="p" className="text-primary">
                 {item.title}

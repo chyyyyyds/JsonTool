@@ -82,11 +82,27 @@ function JsonPath() {
         <div
           className="opacity-0 group-hover:opacity-100 hover:cursor-pointer transition-opacity duration-2000 ease-in-out"
           title={t("copy_json_path")}
-          onClick={() => {
-            navigator.clipboard.writeText(pathString).then(() => {
+          onClick={async () => {
+            try {
+              await navigator.clipboard.writeText(pathString);
               setCopied(true);
               setTimeout(() => setCopied(false), 1000);
-            });
+            } catch (err) {
+              console.error("Failed to copy:", err);
+              // 降级方案：使用传统的 document.execCommand
+              try {
+                const textArea = document.createElement("textarea");
+                textArea.value = pathString;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand("copy");
+                document.body.removeChild(textArea);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 1000);
+              } catch (fallbackErr) {
+                console.error("Fallback copy failed:", fallbackErr);
+              }
+            }
           }}
         >
           <Icon className="icon" />

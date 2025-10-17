@@ -51,6 +51,28 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
       },
     },
     {
+      id: "show_jq",
+      run: () => getStatusState().setCommandMode("jq"),
+    },
+    {
+      id: "show_json_path",
+      run: () => getStatusState().setCommandMode("json_path"),
+    },
+    {
+      id: "urlToJson",
+      run: async () => {
+        const { main } = get();
+        const { text, parse } = await window.worker.urlToJSON(main!.text());
+        if (!parse) return parse;
+        const { set } = await main!.parseAndSet(text);
+        return set;
+      },
+    },
+    {
+      id: "compare",
+      run: async () => await get().compare(),
+    },
+    {
       id: "escape",
       run: async () => {
         const { main } = get();
@@ -93,20 +115,6 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
       },
     },
     {
-      id: "urlToJson",
-      run: async () => {
-        const { main } = get();
-        const { text, parse } = await window.worker.urlToJSON(main!.text());
-        if (!parse) return parse;
-        const { set } = await main!.parseAndSet(text);
-        return set;
-      },
-    },
-    {
-      id: "compare",
-      run: async () => await get().compare(),
-    },
-    {
       id: "swapLeftRight",
       hidden: true,
       run: async () => {
@@ -117,14 +125,6 @@ export const useEditorStore = create<EditorState>()((set, get) => ({
         await secondary?.parseAndSet(left ?? "", {}, false);
         return true;
       },
-    },
-    {
-      id: "show_jq",
-      run: () => getStatusState().setCommandMode("jq"),
-    },
-    {
-      id: "show_json_path",
-      run: () => getStatusState().setCommandMode("json_path"),
     },
   ],
 
