@@ -1,20 +1,18 @@
 import Link from "next/link";
 import LinkButton, { type Href } from "@/components/LinkButton";
-import GitHub from "@/components/icons/GitHub";
+// import GitHub from "@/components/icons/GitHub";
 import Logo from "@/components/icons/Logo";
-import { Badge } from "@/components/ui/badge";
+// import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import Typography from "@/components/ui/typography";
-import AccountButton from "@/containers/editor/sidenav/AccountButton";
-import { isCN, version } from "@/lib/env";
+// import AccountButton from "@/containers/editor/sidenav/AccountButton";
+import { isCN } from "@/lib/env";
 import { useTranslations } from "next-intl";
 
 export default function Header() {
   const t = useTranslations("Home");
-  const items = [
-    // { href: "/#pricing", title: t("Pricing") },
+  const items: { href: Href; title: string }[] = [
     { href: "/tutorial", title: t("Tutorial") },
-    { href: "/changelog", title: t("Changelog") },
   ];
 
   return (
@@ -24,7 +22,7 @@ export default function Header() {
           <Logo />
           <span className="font-bold">{"JSON For You"}</span>
         </Link>
-        <Badge variant="secondary">{`v${version}`}</Badge>
+        {/* remove version badge */}
         <div className="md:flex hidden items-center gap-4 ml-4">
           {items.map((item) => (
             <Link
@@ -42,14 +40,12 @@ export default function Header() {
         </div>
         <div className="ml-auto" />
         <div className="flex items-center h-full py-3 gap-4">
-          {!isCN && <AccountButton notOnSideNav avatarClassName="w-8 h-8" />}
+          {/* remove login button */}
           <LinkButton href="/editor" variant="default">
             {t("Editor")}
           </LinkButton>
           <Separator className="md:flex hidden" orientation="vertical" />
-          <Link className="md:flex hidden" href="https://github.com/loggerhead/json4u">
-            <GitHub className="w-6 h-6" />
-          </Link>
+          {/* remove github link */}
         </div>
       </nav>
     </div>

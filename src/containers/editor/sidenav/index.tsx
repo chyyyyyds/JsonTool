@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Logo from "@/components/icons/Logo";
 import { Separator } from "@/components/ui/separator";
-import { isCN, version } from "@/lib/env";
+import { isCN } from "@/lib/env";
 import { cn } from "@/lib/utils";
 import { useConfigFromCookies } from "@/stores/hook";
 import { useStatusStore } from "@/stores/statusStore";
@@ -24,15 +24,15 @@ import {
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useShallow } from "zustand/shallow";
-import AccountButton from "./AccountButton";
+// import AccountButton from "./AccountButton";
 import Button from "./Button";
 import ExportPopover from "./ExportPopover";
-import { Label } from "./IconLabel";
+// import { Label } from "./IconLabel";
 import ImportPopover from "./ImportPopover";
 import LinkButton from "./LinkButton";
 import PopoverBtn, { popoverBtnClass } from "./PopoverButton";
-import SharePopover from "./SharePopover";
-import StatisticsPopover from "./StatisticsPopover";
+// import SharePopover from "./SharePopover";
+// import StatisticsPopover from "./StatisticsPopover";
 import Toggle from "./Toggle";
 import { ListChecks } from "lucide-react";
 
@@ -98,16 +98,12 @@ export default function SideNav() {
         <ul className="relative flex flex-col justify-start px-1 gap-y-1">
           <Link prefetch={false} href="/" className="flex items-center pointer mt-1 mb-2">
             <Logo className="w-6 h-6" />
-            <Label title={`v${version}`} />
           </Link>
           <PopoverBtn title={t("Import")} icon={<FileUp className="icon" />} content={<ImportPopover />} />
           <PopoverBtn title={t("Export")} icon={<Download className="icon" />} content={<ExportPopover />} />
-          <PopoverBtn
-            className="hidden"
-            title={t("Share")}
-            icon={<Share2 className="icon" />}
-            content={<SharePopover />}
-          />
+          {false && (
+            <PopoverBtn className="hidden" title={t("Share")} icon={<Share2 className="icon" />} content={<div />} />
+          )}
           <Separator className="my-1" />
           <Toggle
             icon={<Braces className="icon" />}
@@ -147,15 +143,9 @@ export default function SideNav() {
         </ul>
         <ul className="flex flex-col px-1 gap-y-2">
           <LinkButton icon={<CircleHelp className="icon" />} title={t("Tutorial")} href={"/tutorial"} newWindow />
-          <LinkButton
-            icon={<Bug className="icon" />}
-            title={t("Feedback")}
-            href={isCN ? "https://support.qq.com/product/670462" : "https://github.com/loggerhead/json4u/issues/new"}
-            newWindow
-          />
-          <PopoverBtn title={t("statistics")} icon={<BarChartBig className="icon" />} content={<StatisticsPopover />} />
-          {/* can't connect to supabase in China, so disable the function temporarily */}
-          {!isCN && <AccountButton avatarClassName="w-6 h-6" />}
+          {false && <LinkButton icon={<Bug className="icon" />} title={t("Feedback")} href={"#"} newWindow />}
+          {false && <PopoverBtn title={t("statistics")} icon={<BarChartBig className="icon" />} content={<div />} />}
+          {false && <div />}
           <Button
             className="my-1.5"
             icon={fixSideNav ? <ArrowRightFromLine className="icon" /> : <ArrowLeftToLine className="icon" />}

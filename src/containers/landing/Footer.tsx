@@ -1,27 +1,15 @@
 import Link from "next/link";
 import { type Href } from "@/components/LinkButton";
-import GitHub from "@/components/icons/GitHub";
+// import GitHub from "@/components/icons/GitHub";
 import Logo from "@/components/icons/Logo";
-import Twitter from "@/components/icons/Twitter";
-import Weibo from "@/components/icons/Weibo";
+// import Twitter from "@/components/icons/Twitter";
+// import Weibo from "@/components/icons/Weibo";
 import { isCN } from "@/lib/env";
 import { useTranslations } from "next-intl";
 
 export default function Footer() {
   const t = useTranslations("Home");
-  const items: FooterLinkProps[] = [
-    { href: "https://www.trustpilot.com/review/json4u.com", title: t("Give a rating") },
-    ...(isCN
-      ? [
-          { href: "https://support.qq.com/product/670462", title: t("Feedback") },
-          { href: "https://weibo.com/loggerhead", title: <Weibo className="icon" /> },
-        ]
-      : [
-          { href: "https://github.com/loggerhead/json4u/issues/new", title: t("Feedback") },
-          { href: "https://x.com/1oggerhead", title: <Twitter className="icon" /> },
-        ]),
-    { href: "https://github.com/loggerhead/json4u", title: <GitHub className="icon" /> },
-  ];
+  const items: FooterLinkProps[] = [];
 
   return (
     <footer className="flex h-12 items-center justify-center w-full border-t">
@@ -30,7 +18,7 @@ export default function Footer() {
           <Logo className="w-[20px] h-[20px] text-slate-500" />
           <span>{"© 2025 JSON For You"}</span>
         </div>
-        <Legal />
+        {/* remove legal links */}
         {isCN && <Upyun />}
         <div className="ml-auto lg:flex hidden gap-8">
           {items.map((item, i) => (
@@ -62,22 +50,7 @@ function Upyun() {
   );
 }
 
-function Legal() {
-  const t = useTranslations("Home");
-
-  return (
-    <div className="flex items-center lg:gap-8 lg:ml-0 ml-auto gap-4">
-      {isCN ? (
-        <FooterLink nofollow href="https://beian.miit.gov.cn" title={"粤ICP备16007488号"} />
-      ) : (
-        <>
-          <FooterLink href="/terms" title={t("Terms")} />
-          <FooterLink href="/privacy" title={t("Privacy")} />
-        </>
-      )}
-    </div>
-  );
-}
+function Legal() { return null; }
 
 interface FooterLinkProps {
   href: string;
