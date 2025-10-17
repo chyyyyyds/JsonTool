@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Container, ContainerContent, ContainerHeader } from "@/components/Container";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 // Use native textarea with styling; no custom Textarea component exists in ui/
@@ -36,6 +36,25 @@ export default function LineComparePanel() {
   const [rightText, setRightText] = useState("");
   const [leftEditing, setLeftEditing] = useState(false);
   const [rightEditing, setRightEditing] = useState(false);
+  const leftTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const rightTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const [pendingFocus, setPendingFocus] = useState<{
+    side: "left" | "right";
+    lineIndex: number | null;
+    offsetX?: number; // click x relative to text start in px
+  } | null>(null);
+
+  function getCharIndexByX(ctx: CanvasRenderingContext2D, text: string, x: number): number {
+    if (x <= 0) return 0;
+    let lo = 0;
+    let hi = text.length;
+    while (lo < hi) {
+      const mid = Math.floor((lo + hi) / 2);
+      const w = ctx.measureText(text.slice(0, mid + 1)).width;
+      if (w < x) lo = mid + 1; else hi = mid;
+    }
+    return lo;
+  }
   const leftLines = useMemo(() => leftText.replace(/\r\n/g, "\n").split("\n"), [leftText]);
   const rightLines = useMemo(() => rightText.replace(/\r\n/g, "\n").split("\n"), [rightText]);
 
@@ -62,6 +81,69 @@ export default function LineComparePanel() {
     }
   };
 
+  useEffect(() => {
+    // When entering edit mode, move caret to requested position
+    if (leftEditing && pendingFocus?.side === "left") {
+      const ta = leftTextareaRef.current;
+      if (ta) {
+        const targetPos = (() => {
+          if (pendingFocus.lineIndex === null) return leftText.length;
+          const idx = Math.min(pendingFocus.lineIndex, leftLines.length - 1);
+          const prefix = leftLines.slice(0, idx).join("\n");
+          const prefixLen = prefix.length + (idx > 0 ? 1 : 0);
+          if (pendingFocus.offsetX == null) {
+            return prefixLen + leftLines[idx].length;
+          }
+          const cs = getComputedStyle(ta);
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+          if (!ctx) return prefixLen + leftLines[idx].length;
+          ctx.font = `${cs.fontStyle} ${cs.fontVariant} ${cs.fontWeight} ${cs.fontSize} / ${cs.lineHeight} ${cs.fontFamily}`;
+          const charIdx = getCharIndexByX(ctx, leftLines[idx], pendingFocus.offsetX);
+          return prefixLen + charIdx;
+        })();
+        requestAnimationFrame(() => {
+          ta.focus();
+          try {
+            ta.setSelectionRange(targetPos, targetPos);
+          } catch {}
+        });
+      }
+      setPendingFocus(null);
+    }
+  }, [leftEditing]);
+
+  useEffect(() => {
+    if (rightEditing && pendingFocus?.side === "right") {
+      const ta = rightTextareaRef.current;
+      if (ta) {
+        const targetPos = (() => {
+          if (pendingFocus.lineIndex === null) return rightText.length;
+          const idx = Math.min(pendingFocus.lineIndex, rightLines.length - 1);
+          const prefix = rightLines.slice(0, idx).join("\n");
+          const prefixLen = prefix.length + (idx > 0 ? 1 : 0);
+          if (pendingFocus.offsetX == null) {
+            return prefixLen + rightLines[idx].length;
+          }
+          const cs = getComputedStyle(ta);
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+          if (!ctx) return prefixLen + rightLines[idx].length;
+          ctx.font = `${cs.fontStyle} ${cs.fontVariant} ${cs.fontWeight} ${cs.fontSize} / ${cs.lineHeight} ${cs.fontFamily}`;
+          const charIdx = getCharIndexByX(ctx, rightLines[idx], pendingFocus.offsetX);
+          return prefixLen + charIdx;
+        })();
+        requestAnimationFrame(() => {
+          ta.focus();
+          try {
+            ta.setSelectionRange(targetPos, targetPos);
+          } catch {}
+        });
+      }
+      setPendingFocus(null);
+    }
+  }, [rightEditing]);
+
   return (
     <ResizablePanelGroup direction="horizontal" className="flex-grow">
       <ResizablePanel defaultSize={20} minSize={10}>
@@ -82,6 +164,7 @@ export default function LineComparePanel() {
           <ContainerContent>
             {leftEditing ? (
               <textarea
+                ref={leftTextareaRef}
                 value={leftText}
                 onChange={(e) => setLeftText(e.target.value)}
                 wrap="off"
@@ -93,7 +176,11 @@ export default function LineComparePanel() {
             ) : (
               <div
                 className="h-full overflow-auto space-y-1"
-                onClick={() => setLeftEditing(true)}
+                onClick={(e) => {
+                  // click on blank area -> go end
+                  setPendingFocus({ side: "left", lineIndex: null });
+                  setLeftEditing(true);
+                }}
                 onPaste={(e) => {
                   const text = e.clipboardData.getData("text");
                   if (text) {
@@ -105,7 +192,17 @@ export default function LineComparePanel() {
                 }}
               >
                 {leftLines.map((line, idx) => (
-                  <div key={idx} className="flex items-center gap-1">
+                  <div
+                    key={idx}
+                    className="flex items-center gap-1"
+                    onClick={(ev) => {
+                      ev.stopPropagation();
+                      const rect = (ev.currentTarget.firstChild as HTMLElement)?.getBoundingClientRect();
+                      const clickX = rect ? ev.clientX - rect.left : undefined;
+                      setPendingFocus({ side: "left", lineIndex: idx, offsetX: clickX });
+                      setLeftEditing(true);
+                    }}
+                  >
                     <div className={cn("flex-1 min-w-0 text-sm text-hl-string", "truncate whitespace-nowrap overflow-hidden")}>{line}</div>
                     <Button
                       title={t("Copy")}
@@ -145,6 +242,7 @@ export default function LineComparePanel() {
           <ContainerContent>
             {rightEditing ? (
               <textarea
+                ref={rightTextareaRef}
                 value={rightText}
                 onChange={(e) => setRightText(e.target.value)}
                 wrap="off"
@@ -156,7 +254,10 @@ export default function LineComparePanel() {
             ) : (
               <div
                 className="h-full overflow-auto space-y-1"
-                onClick={() => setRightEditing(true)}
+                onClick={() => {
+                  setPendingFocus({ side: "right", lineIndex: null });
+                  setRightEditing(true);
+                }}
                 onPaste={(e) => {
                   const text = e.clipboardData.getData("text");
                   if (text) {
@@ -168,7 +269,17 @@ export default function LineComparePanel() {
                 }}
               >
                 {rightLines.map((line, idx) => (
-                  <div key={idx} className="flex items-center gap-1">
+                  <div
+                    key={idx}
+                    className="flex items-center gap-1"
+                    onClick={(ev) => {
+                      ev.stopPropagation();
+                      const rect = (ev.currentTarget.firstChild as HTMLElement)?.getBoundingClientRect();
+                      const clickX = rect ? ev.clientX - rect.left : undefined;
+                      setPendingFocus({ side: "right", lineIndex: idx, offsetX: clickX });
+                      setRightEditing(true);
+                    }}
+                  >
                     <div className={cn("flex-1 min-w-0 text-sm text-hl-string", "truncate whitespace-nowrap overflow-hidden")}>{line}</div>
                     <Button
                       title={t("Copy")}
