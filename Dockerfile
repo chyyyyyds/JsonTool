@@ -3,9 +3,16 @@ FROM node:20-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
+
+# 配置代理环境变量（让 Docker build 内部能访问宿主机代理）
+ARG HTTP_PROXY
+ARG HTTPS_PROXY
+ARG ALL_PROXY
+ENV http_proxy=$HTTP_PROXY
+ENV https_proxy=$HTTPS_PROXY
+ENV all_proxy=$ALL_PROXY
 
 # 配置国内镜像源加速
 RUN corepack enable pnpm
@@ -13,17 +20,26 @@ RUN pnpm config set registry https://registry.npmmirror.com
 RUN pnpm config set electron_mirror https://npmmirror.com/mirrors/electron/
 RUN pnpm config set sass_binary_site https://npmmirror.com/mirrors/node-sass/
 
-# Install dependencies based on the preferred package manager
+# Install dependencies
 COPY package.json pnpm-lock.yaml* ./
 RUN pnpm i --frozen-lockfile
 
 # Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
+
+# 继承代理环境变量
+ARG HTTP_PROXY
+ARG HTTPS_PROXY
+ARG ALL_PROXY
+ENV http_proxy=$HTTP_PROXY
+ENV https_proxy=$HTTPS_PROXY
+ENV all_proxy=$ALL_PROXY
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# 配置构建时的镜像源
+# 配置构建时的国内镜像源
 RUN corepack enable pnpm
 RUN pnpm config set registry https://registry.npmmirror.com
 
@@ -39,7 +55,7 @@ ENV NEXT_PUBLIC_FREE_QUOTA="{\"graphModeView\":$FREE_QUOTA,\"tableModeView\":$FR
 
 RUN pnpm run build
 
-# Production image, copy all the files and run next
+# Production image
 FROM base AS runner
 WORKDIR /app
 
@@ -48,22 +64,17 @@ RUN adduser --system --uid 1001 nextjs
 
 COPY --from=builder /app/public ./public
 
-# Set the correct permission for prerender cache
 RUN mkdir .next
 RUN chown nextjs:nodejs .next
 
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
 
 EXPOSE 3000
-
 ENV PORT=3000
-
-# server.js is created by next build from the standalone output
-# https://nextjs.org/docs/pages/api-reference/next-config-js/output
 ENV HOSTNAME="0.0.0.0"
+
 CMD ["node", "server.js"]
+
