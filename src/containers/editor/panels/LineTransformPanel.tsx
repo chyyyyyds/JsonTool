@@ -92,14 +92,62 @@ function replaceLast(input: string, pattern: RegExp, replacement: string) {
   return input.slice(0, start) + replacement + input.slice(end);
 }
 
+function countNewlines(value?: string) {
+  if (!value) return 0;
+  return (value.match(/\n/g) || []).length;
+}
+
 export default function LineTransformPanel() {
   const [inputText, setInputText] = useState("");
   const [ops, setOps] = useState<Op[]>([{ id: crypto.randomUUID(), mode: "remove", scope: "start", target: "space" }]);
   
 
   const outputText = useMemo(() => {
-    const lines = inputText.replace(/\r\n/g, "\n").split("\n");
-    const out = lines.map((ln) => applyOpsToLine(ln, ops));
+    // 统一换行符
+    let text = inputText.replace(/\r\n/g, "\n");
+
+    // 跨行操作：当目标包含换行符，且 scope 为 center 或者（start/end 对应字段包含换行）时，对整段文本处理
+    const isCrossLineOp = (op: Op) => {
+      if (op.target !== "custom") return false;
+      const hasNlStart = (op.fromStart ?? "").includes("\n");
+      const hasNlEnd = (op.fromEnd ?? "").includes("\n");
+      if (op.scope === "center") return hasNlStart || hasNlEnd;
+      if (op.scope === "start") return hasNlStart; // 例如把行首的"\n"当作整段处理无意义，但支持用户意图
+      if (op.scope === "end") return hasNlEnd; // 替换行尾换行为分隔符（A,B,C）
+      return false;
+    };
+    const crossLineOps = ops.filter(isCrossLineOp);
+    if (crossLineOps.length > 0) {
+      for (const op of crossLineOps) {
+        // 取要匹配的整体模式
+        const patternStr = op.scope === "end" ? (op.fromEnd ?? "") : (op.fromStart ?? op.fromEnd ?? "");
+        if (!patternStr) continue;
+        const rep = op.mode === "replace" ? (op.replaceWith ?? "") : "";
+
+        // 选择出现位置：center 提供 first/all/last；start/end 默认 all
+        const occurrence: Occurrence = op.scope === "center" ? (op.occurrence ?? "all") : "all";
+
+        // 特殊处理：pattern 为单个换行符时，用 /\n/ 直接替换
+        const patternIsNewline = patternStr === "\n";
+        if (occurrence === "all") {
+          text = patternIsNewline
+            ? text.replace(/\n/g, rep)
+            : text.replace(new RegExp(escapeRegex(patternStr), "g"), rep);
+        } else if (occurrence === "first") {
+          text = patternIsNewline
+            ? text.replace(/\n/, rep)
+            : text.replace(new RegExp(escapeRegex(patternStr)), rep);
+        } else if (occurrence === "last") {
+          text = patternIsNewline
+            ? replaceLast(text, /\n/, rep)
+            : replaceLast(text, new RegExp(escapeRegex(patternStr)), rep);
+        }
+      }
+    }
+
+    // 其余操作：逐行处理
+    const lines = text.split("\n");
+    const out = lines.map((ln) => applyOpsToLine(ln, ops.filter((op) => !crossLineOps.includes(op))));
     return out.join("\n");
   }, [inputText, ops]);
 
@@ -298,28 +346,67 @@ function OpRow({ op, onChange, onRemove, index }: { op: Op; onChange: (o: Op) =>
           <span className="text-xs font-medium text-muted-foreground w-16">字符:</span>
           <div className="flex gap-2 flex-1">
             {op.scope === "start" && (
-              <Input
-                className="h-8 text-sm flex-1"
-                value={op.fromStart ?? ""}
-                onChange={(e) => onChange({ ...op, fromStart: e.target.value })}
-                placeholder="前置字符"
-              />
+              <div className="flex items-center gap-2 flex-1">
+                <Input
+                  className="h-8 text-sm flex-1"
+                  value={op.fromStart ?? ""}
+                  onChange={(e) => onChange({ ...op, fromStart: e.target.value })}
+                  placeholder="前置字符"
+                />
+                {countNewlines(op.fromStart) > 0 && (
+                  <span className="text-[10px] px-1 py-0.5 rounded bg-muted text-muted-foreground">↵{countNewlines(op.fromStart)}</span>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-2"
+                  onClick={() => onChange({ ...op, fromStart: (op.fromStart ?? "") + "\n" })}
+                >
+                  +回车
+                </Button>
+              </div>
             )}
             {op.scope === "end" && (
-              <Input
-                className="h-8 text-sm flex-1"
-                value={op.fromEnd ?? ""}
-                onChange={(e) => onChange({ ...op, fromEnd: e.target.value })}
-                placeholder="后置字符"
-              />
+              <div className="flex items-center gap-2 flex-1">
+                <Input
+                  className="h-8 text-sm flex-1"
+                  value={op.fromEnd ?? ""}
+                  onChange={(e) => onChange({ ...op, fromEnd: e.target.value })}
+                  placeholder="后置字符"
+                />
+                {countNewlines(op.fromEnd) > 0 && (
+                  <span className="text-[10px] px-1 py-0.5 rounded bg-muted text-muted-foreground">↵{countNewlines(op.fromEnd)}</span>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-2"
+                  onClick={() => onChange({ ...op, fromEnd: (op.fromEnd ?? "") + "\n" })}
+                >
+                  +回车
+                </Button>
+              </div>
             )}
             {op.scope === "center" && (
-              <Input
-                className="h-8 text-sm flex-1"
-                value={op.fromStart ?? ""}
-                onChange={(e) => onChange({ ...op, fromStart: e.target.value })}
-                placeholder="要匹配的字符"
-              />
+              <div className="flex items-center gap-2 flex-1">
+                <Input
+                  className="h-8 text-sm flex-1"
+                  value={op.fromStart ?? ""}
+                  onChange={(e) => onChange({ ...op, fromStart: e.target.value })}
+                  placeholder="要匹配的字符"
+                />
+                {countNewlines(op.fromStart) > 0 && (
+                  <span className="text-[10px] px-1 py-0.5 rounded bg-muted text-muted-foreground">↵{countNewlines(op.fromStart)}</span>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-2"
+                  onClick={() => onChange({ ...op, fromStart: (op.fromStart ?? "") + "\n" })}
+                >
+                  +回车
+                </Button>
+              </div>
             )}
           </div>
         </div>
@@ -329,12 +416,25 @@ function OpRow({ op, onChange, onRemove, index }: { op: Op; onChange: (o: Op) =>
       {op.mode === "replace" && (
         <div className="flex items-center gap-2">
           <span className="text-xs font-medium text-muted-foreground w-16">替换为:</span>
-          <Input
-            className="h-8 text-sm flex-1"
-            value={op.replaceWith ?? ""}
-            onChange={(e) => onChange({ ...op, replaceWith: e.target.value })}
-            placeholder="替换为"
-          />
+          <div className="flex items-center gap-2 flex-1">
+            <Input
+              className="h-8 text-sm flex-1"
+              value={op.replaceWith ?? ""}
+              onChange={(e) => onChange({ ...op, replaceWith: e.target.value })}
+              placeholder="替换为"
+            />
+            {countNewlines(op.replaceWith) > 0 && (
+              <span className="text-[10px] px-1 py-0.5 rounded bg-muted text-muted-foreground">↵{countNewlines(op.replaceWith)}</span>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 px-2"
+              onClick={() => onChange({ ...op, replaceWith: (op.replaceWith ?? "") + "\n" })}
+            >
+              +回车
+            </Button>
+          </div>
         </div>
       )}
 
