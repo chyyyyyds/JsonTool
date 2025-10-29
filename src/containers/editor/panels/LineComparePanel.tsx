@@ -6,6 +6,7 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/componen
 // Use native textarea with styling; no custom Textarea component exists in ui/
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
+import LineNumberedTextarea from "@/containers/editor/components/LineNumberedTextarea";
 import { Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toastSucc } from "@/lib/utils";
@@ -167,15 +168,11 @@ export default function LineComparePanel() {
           </ContainerHeader>
           <ContainerContent>
             {leftEditing ? (
-              <textarea
-                ref={leftTextareaRef}
+              <LineNumberedTextarea
                 value={leftText}
-                onChange={(e) => setLeftText(e.target.value)}
-                wrap="off"
-                onBlur={() => setLeftEditing(false)}
-                autoFocus
-                className="h-full w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm text-hl-string shadow-sm outline-none focus-visible:ring-1 focus-visible:ring-ring whitespace-pre overflow-auto"
+                onChange={(v) => setLeftText(v)}
                 placeholder={t("left_input") as string}
+                minHeight={300}
               />
             ) : (
               <div
@@ -245,15 +242,11 @@ export default function LineComparePanel() {
           </ContainerHeader>
           <ContainerContent>
             {rightEditing ? (
-              <textarea
-                ref={rightTextareaRef}
+              <LineNumberedTextarea
                 value={rightText}
-                onChange={(e) => setRightText(e.target.value)}
-                wrap="off"
-                onBlur={() => setRightEditing(false)}
-                autoFocus
-                className="h-full w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm text-hl-string shadow-sm outline-none focus-visible:ring-1 focus-visible:ring-ring whitespace-pre overflow-auto"
+                onChange={(v) => setRightText(v)}
                 placeholder={t("right_input") as string}
+                minHeight={300}
               />
             ) : (
               <div
@@ -321,22 +314,7 @@ export default function LineComparePanel() {
             </div>
           </ContainerHeader>
           <ContainerContent>
-            <div className="h-full overflow-auto">
-              {onlyLeft.map((line) => (
-                <div key={line} className="flex items-center gap-1 py-0.5 leading-5">
-                  <div className={cn("flex-1 min-w-0 text-sm text-hl-string", "truncate whitespace-nowrap")}>{line}</div>
-                  <Button
-                    title={t("Copy")}
-                    variant="icon-outline"
-                    size="xs"
-                    className="h-5 w-5 p-0"
-                    onClick={() => copyToClipboard(line)}
-                  >
-                    <Copy className="h-3 w-3" />
-                  </Button>
-                </div>
-              ))}
-            </div>
+            <LineNumberedTextarea value={onlyLeft.join("\n")} readOnly minHeight={300} />
           </ContainerContent>
         </Container>
       </ResizablePanel>
@@ -357,22 +335,7 @@ export default function LineComparePanel() {
             </div>
           </ContainerHeader>
           <ContainerContent>
-            <div className="h-full overflow-auto">
-              {onlyRight.map((line) => (
-                <div key={line} className="flex items-center gap-1 py-0.5 leading-5">
-                  <div className={cn("flex-1 min-w-0 text-sm text-hl-string", "truncate whitespace-nowrap")}>{line}</div>
-                  <Button
-                    title={t("Copy")}
-                    variant="icon-outline"
-                    size="xs"
-                    className="h-5 w-5 p-0"
-                    onClick={() => copyToClipboard(line)}
-                  >
-                    <Copy className="h-3 w-3" />
-                  </Button>
-                </div>
-              ))}
-            </div>
+            <LineNumberedTextarea value={onlyRight.join("\n")} readOnly minHeight={300} />
           </ContainerContent>
         </Container>
       </ResizablePanel>
@@ -393,22 +356,7 @@ export default function LineComparePanel() {
             </div>
           </ContainerHeader>
           <ContainerContent>
-            <div className="h-full overflow-auto">
-              {both.map((line) => (
-                <div key={line} className="flex items-center gap-1 py-0.5 leading-5">
-                  <div className={cn("flex-1 min-w-0 text-sm text-hl-string", "truncate whitespace-nowrap")}>{line}</div>
-                  <Button
-                    title={t("Copy")}
-                    variant="icon-outline"
-                    size="xs"
-                    className="h-5 w-5 p-0"
-                    onClick={() => copyToClipboard(line)}
-                  >
-                    <Copy className="h-3 w-3" />
-                  </Button>
-                </div>
-              ))}
-            </div>
+            <LineNumberedTextarea value={both.join("\n")} readOnly minHeight={300} />
           </ContainerContent>
         </Container>
       </ResizablePanel>

@@ -14,6 +14,8 @@ import { useShallow } from "zustand/shallow";
 import LeftPanel from "./LeftPanel";
 import RightPanel from "./RightPanel";
 import LineComparePanel from "./LineComparePanel";
+import LineTransformPanel from "./LineTransformPanel";
+import LineAssemblerPanel from "./LineAssemblerPanel";
 
 const leftPanelId = "left-panel";
 const rightPanelId = "right-panel";
@@ -42,18 +44,27 @@ export default function MainPanel() {
   const [showRightCollapseHint, setShowRightCollapseHint] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const layoutRef = useRef<number[]>();
-  const { lineCompareEnabled } = useStatusStore(useShallow((s) => ({ lineCompareEnabled: s.lineCompareEnabled })));
+  const { lineCompareEnabled, lineAssemblerEnabled, lineTransformEnabled } = useStatusStore(useShallow((s) => ({ 
+    lineCompareEnabled: s.lineCompareEnabled,
+    lineAssemblerEnabled: s.lineAssemblerEnabled,
+    lineTransformEnabled: s.lineTransformEnabled,
+  })));
 
   useObserveResize(leftPanelId, rightPanelId);
 
   // see https://github.com/bvaughn/react-resizable-panels/issues/128#issuecomment-1523343548
   return (
     <div className="relative w-full h-full flex flex-col min-w-0">
-      <ResizablePanelGroup
-        className="flex-grow"
-        direction="horizontal"
-        onLayout={(layout) => (layoutRef.current = layout)}
-      >
+      {lineAssemblerEnabled ? (
+        <LineAssemblerPanel />
+      ) : lineTransformEnabled ? (
+        <LineTransformPanel />
+      ) : (
+        <ResizablePanelGroup
+          className="flex-grow"
+          direction="horizontal"
+          onLayout={(layout) => (layoutRef.current = layout)}
+        >
         {!lineCompareEnabled && (
           <>
             <ResizablePanel
@@ -109,6 +120,7 @@ export default function MainPanel() {
         )}
         {lineCompareEnabled && <LineComparePanel />}
       </ResizablePanelGroup>
+      )}
       <ModePanel />
       <Separator />
       <StatusBar />

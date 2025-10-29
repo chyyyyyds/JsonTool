@@ -28,7 +28,9 @@ export interface StatusState extends Config {
   showPricingOverlay?: boolean;
   unfoldNodeMap: Record<string, boolean>;
   unfoldSiblingsNodeMap: Record<string, boolean>;
-  lineCompareEnabled?: boolean;
+  lineCompareEnabled: boolean;
+  lineAssemblerEnabled: boolean;
+  lineTransformEnabled: boolean;
 
   incrEditorInitCount: () => number;
   setLeftPanelWidth: (width: number) => void;
@@ -49,6 +51,8 @@ export interface StatusState extends Config {
   setShowPricingOverlay: (show: boolean) => void;
   setIsTouchpad: (isTouchpad: boolean) => void;
   setLineCompareEnabled: (enable: boolean) => void;
+  setLineAssemblerEnabled: (enable: boolean) => void;
+  setLineTransformEnabled: (enable: boolean) => void;
   toggleFoldNode: (nodeId: string) => void;
   toggleFoldSibingsNode: (nodeId: string) => void;
   resetFoldStatus: () => void;
@@ -64,6 +68,8 @@ const initialStates: Omit<StatusState, FunctionKeys<StatusState>> = {
   unfoldNodeMap: {},
   unfoldSiblingsNodeMap: {},
   lineCompareEnabled: false,
+  lineAssemblerEnabled: false,
+  lineTransformEnabled: false,
 };
 
 export const useStatusStore = create<StatusState>()(
@@ -173,6 +179,14 @@ export const useStatusStore = create<StatusState>()(
 
       setLineCompareEnabled(enable: boolean) {
         set({ lineCompareEnabled: enable });
+      },
+
+      setLineAssemblerEnabled(enable: boolean) {
+        set({ lineAssemblerEnabled: enable });
+      },
+
+      setLineTransformEnabled(enable: boolean) {
+        set({ lineTransformEnabled: enable });
       },
 
       toggleFoldNode(nodeId: string) {

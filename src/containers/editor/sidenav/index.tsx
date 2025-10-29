@@ -21,6 +21,8 @@ import {
   ArrowLeftToLine,
   ArrowRightFromLine,
   Bug,
+  Layers,
+  Eraser,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useShallow } from "zustand/shallow";
@@ -57,6 +59,10 @@ export default function SideNav() {
     setEnableSyncScroll,
     lineCompareEnabled,
     setLineCompareEnabled,
+    lineAssemblerEnabled,
+    setLineAssemblerEnabled,
+    lineTransformEnabled,
+    setLineTransformEnabled,
   } = useStatusStore(
     useShallow((state) => {
       const parseOptions = state._hasHydrated ? state.parseOptions : cc.parseOptions;
@@ -73,6 +79,10 @@ export default function SideNav() {
         setEnableSyncScroll: state.setEnableSyncScroll,
         lineCompareEnabled: state.lineCompareEnabled,
         setLineCompareEnabled: state.setLineCompareEnabled,
+        lineAssemblerEnabled: state.lineAssemblerEnabled,
+        setLineAssemblerEnabled: state.setLineAssemblerEnabled,
+        lineTransformEnabled: state.lineTransformEnabled,
+        setLineTransformEnabled: state.setLineTransformEnabled,
       };
     }),
   );
@@ -139,6 +149,20 @@ export default function SideNav() {
             description={t("line_compare_desc")}
             isPressed={!!lineCompareEnabled}
             onPressedChange={(pressed) => setLineCompareEnabled(pressed)}
+          />
+          <Toggle
+            icon={<Layers className="icon" />}
+            title={(t as any)("line_assembler")}
+            description={(t as any)("line_assembler_desc")}
+            isPressed={!!lineAssemblerEnabled}
+            onPressedChange={(pressed) => setLineAssemblerEnabled(pressed)}
+          />
+          <Toggle
+            icon={<Eraser className="icon" />}
+            title={(t as any)("line_transform")}
+            description={(t as any)("line_transform_desc")}
+            isPressed={!!lineTransformEnabled}
+            onPressedChange={(pressed) => setLineTransformEnabled(pressed)}
           />
         </ul>
         <ul className="flex flex-col px-1 gap-y-2">
