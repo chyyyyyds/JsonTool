@@ -21,9 +21,12 @@ export default function Editor({ kind, ...props }: EditorProps) {
   const translations = useTranslations();
   const setEditor = useEditorStore((state) => state.setEditor);
   const setTranslations = useEditorStore((state) => state.setTranslations);
+  const jsonSnap = useStatusStore((s) => s.jsonEditorSnapshot);
+  const setJsonSnap = useStatusStore((s) => s.setJsonEditorSnapshot);
 
   useDisplayExample();
   useRevealNode();
+  useSaveJsonSnapshot(kind);
 
   return (
     <MonacoEditor
@@ -58,6 +61,10 @@ export default function Editor({ kind, ...props }: EditorProps) {
         wrapper.init();
         setEditor(wrapper);
         setTranslations(translations);
+        // restore json snapshot for main editor if exists
+        if (kind === "main" && jsonSnap) {
+          wrapper.parseAndSet(jsonSnap);
+        }
         console.l(`finished initial editor ${kind}:`, wrapper);
       }}
       {...props}
@@ -138,10 +145,26 @@ const exampleData = `{
 function useDisplayExample() {
   const editor = useEditor("main");
   const incrEditorInitCount = useStatusStore((state) => state.incrEditorInitCount);
+  const jsonSnap = useStatusStore((s) => s.jsonEditorSnapshot);
 
   useEffect(() => {
-    if (editor && incrEditorInitCount() <= 1) {
+    if (editor && incrEditorInitCount() <= 1 && !jsonSnap) {
       editor.parseAndSet(exampleData);
     }
   }, [editor]);
+}
+
+// save json editor snapshot on unmount
+export function useSaveJsonSnapshot(kind: Kind) {
+  const editor = useEditor(kind);
+  const setJsonSnap = useStatusStore((s) => s.setJsonEditorSnapshot);
+  useEffect(() => {
+    return () => {
+      if (kind === "main" && editor) {
+        try {
+          setJsonSnap(editor.text());
+        } catch {}
+      }
+    };
+  }, [editor, kind]);
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Container, ContainerContent, ContainerHeader } from "@/components/Container";
 import LineNumberedTextarea from "@/containers/editor/components/LineNumberedTextarea";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Copy, RotateCcw } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toastSucc } from "@/lib/utils";
+import { useStatusStore } from "@/stores/statusStore";
 
 interface AssemblerConfig {
   prefix: string;
@@ -38,8 +39,10 @@ const emptyConfig: AssemblerConfig = {
 
 export default function LineAssemblerPanel() {
   const t = useTranslations();
-  const [inputText, setInputText] = useState("");
-  const [config, setConfig] = useState<AssemblerConfig>(defaultConfig);
+  const snap = useStatusStore((s) => s.lineAssemblerSnapshot);
+  const setSnap = useStatusStore((s) => s.setLineAssemblerSnapshot);
+  const [inputText, setInputText] = useState(snap?.input ?? "");
+  const [config, setConfig] = useState<AssemblerConfig>(snap?.config ?? defaultConfig);
   const [pretty, setPretty] = useState(false);
 
   const outputText = useMemo(() => {
@@ -78,6 +81,11 @@ export default function LineAssemblerPanel() {
       }
     }
   };
+
+  // save snapshot on unmount
+  useEffect(() => {
+    return () => setSnap({ input: inputText, config });
+  }, [inputText, config]);
 
   const resetConfig = () => {
     setConfig(defaultConfig);

@@ -10,6 +10,7 @@ import { Toggle } from "@/components/ui/toggle";
 import { RotateCcw, Plus, Copy } from "lucide-react";
 import LineNumberedTextarea from "@/containers/editor/components/LineNumberedTextarea";
 import { toastSucc } from "@/lib/utils";
+import { useStatusStore } from "@/stores/statusStore";
 
 type Mode = "remove" | "replace";
 type Scope = "start" | "center" | "end";
@@ -109,8 +110,10 @@ interface LineTransformPanelProps {
 }
 
 export default function LineTransformPanel({ visible }: LineTransformPanelProps) {
-  const [inputText, setInputText] = useState("");
-  const [ops, setOps] = useState<Op[]>([{ id: genId(), mode: "remove", scope: "start", target: "space" }]);
+  const snap = useStatusStore((s) => s.lineTransformSnapshot);
+  const setSnap = useStatusStore((s) => s.setLineTransformSnapshot);
+  const [inputText, setInputText] = useState(snap?.input ?? "");
+  const [ops, setOps] = useState<Op[]>(snap?.ops ?? [{ id: genId(), mode: "remove", scope: "start", target: "space" }]);
   const [removeEmptyLinesEnabled, setRemoveEmptyLinesEnabled] = useState(true);
   const t = useTranslations();
 
@@ -119,6 +122,11 @@ export default function LineTransformPanel({ visible }: LineTransformPanelProps)
       resetOps();
     }
   }, [visible]);
+
+  // save snapshot on unmount
+  useEffect(() => {
+    return () => setSnap({ input: inputText, ops });
+  }, [inputText, ops]);
 
   const outputText = useMemo(() => {
     // 统一换行符
