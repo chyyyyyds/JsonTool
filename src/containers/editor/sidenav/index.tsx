@@ -148,21 +148,39 @@ export default function SideNav() {
             title={t("line_compare")}
             description={t("line_compare_desc")}
             isPressed={!!lineCompareEnabled}
-            onPressedChange={(pressed) => setLineCompareEnabled(pressed)}
+            onPressedChange={(pressed) => {
+              setLineCompareEnabled(pressed);
+              if (pressed) {
+                setLineAssemblerEnabled(false);
+                setLineTransformEnabled(false);
+              }
+            }}
           />
           <Toggle
             icon={<Layers className="icon" />}
             title={(t as any)("line_assembler")}
             description={(t as any)("line_assembler_desc")}
             isPressed={!!lineAssemblerEnabled}
-            onPressedChange={(pressed) => setLineAssemblerEnabled(pressed)}
+            onPressedChange={(pressed) => {
+              setLineAssemblerEnabled(pressed);
+              if (pressed) {
+                setLineCompareEnabled(false);
+                setLineTransformEnabled(false);
+              }
+            }}
           />
           <Toggle
             icon={<Eraser className="icon" />}
             title={(t as any)("line_transform")}
             description={(t as any)("line_transform_desc")}
             isPressed={!!lineTransformEnabled}
-            onPressedChange={(pressed) => setLineTransformEnabled(pressed)}
+            onPressedChange={(pressed) => {
+              setLineTransformEnabled(pressed);
+              if (pressed) {
+                setLineCompareEnabled(false);
+                setLineAssemblerEnabled(false);
+              }
+            }}
           />
         </ul>
         <ul className="flex flex-col px-1 gap-y-2">
