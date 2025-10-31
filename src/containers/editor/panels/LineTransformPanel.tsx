@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { Container, ContainerContent, ContainerHeader } from "@/components/Container";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { Toggle } from "@/components/ui/toggle";
 import { RotateCcw, Plus, Copy } from "lucide-react";
 import LineNumberedTextarea from "@/containers/editor/components/LineNumberedTextarea";
+import { toastSucc } from "@/lib/utils";
 
 type Mode = "remove" | "replace";
 type Scope = "start" | "center" | "end";
@@ -22,6 +24,11 @@ interface Op {
   replaceWith?: string; // only for replace of spaces; when replacing spaces, use this
   target: "space" | "custom"; // operate spaces or custom token(s)
   occurrence?: Occurrence; // only for center
+}
+
+// stable id generator without relying on crypto.randomUUID
+function genId() {
+  return `op_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
 }
 
 function applyOpsToLine(line: string, ops: Op[]): string {
@@ -97,10 +104,21 @@ function countNewlines(value?: string) {
   return (value.match(/\n/g) || []).length;
 }
 
-export default function LineTransformPanel() {
+interface LineTransformPanelProps {
+  visible: boolean;
+}
+
+export default function LineTransformPanel({ visible }: LineTransformPanelProps) {
   const [inputText, setInputText] = useState("");
-  const [ops, setOps] = useState<Op[]>([{ id: crypto.randomUUID(), mode: "remove", scope: "start", target: "space" }]);
-  
+  const [ops, setOps] = useState<Op[]>([{ id: genId(), mode: "remove", scope: "start", target: "space" }]);
+  const [removeEmptyLinesEnabled, setRemoveEmptyLinesEnabled] = useState(true);
+  const t = useTranslations();
+
+  useEffect(() => {
+    if (!visible) {
+      resetOps();
+    }
+  }, [visible]);
 
   const outputText = useMemo(() => {
     // 统一换行符
@@ -119,7 +137,6 @@ export default function LineTransformPanel() {
     const crossLineOps = ops.filter(isCrossLineOp);
     if (crossLineOps.length > 0) {
       for (const op of crossLineOps) {
-        // 取要匹配的整体模式
         const patternStr = op.scope === "end" ? (op.fromEnd ?? "") : (op.fromStart ?? op.fromEnd ?? "");
         if (!patternStr) continue;
         const rep = op.mode === "replace" ? (op.replaceWith ?? "") : "";
@@ -147,17 +164,47 @@ export default function LineTransformPanel() {
 
     // 其余操作：逐行处理
     const lines = text.split("\n");
-    const out = lines.map((ln) => applyOpsToLine(ln, ops.filter((op) => !crossLineOps.includes(op))));
-    return out.join("\n");
-  }, [inputText, ops]);
+    let processedText = lines.map((ln) => applyOpsToLine(ln, ops.filter((op) => !crossLineOps.includes(op)))).join("\n");
+
+    // 删除空行（默认开启）
+    if (removeEmptyLinesEnabled) {
+      const normalized = processedText.replace(/\r\n/g, "\n");
+      processedText = normalized
+        .split("\n")
+        .filter((ln) => ln.trim().length > 0)
+        .join("\n");
+    }
+
+    return processedText;
+  }, [inputText, ops, removeEmptyLinesEnabled]);
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toastSucc(t("Copied"));
+    } catch (err) {
+      console.error("Failed to copy:", err);
+      try {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+        toastSucc(t("Copied"));
+      } catch (fallbackErr) {
+        console.error("Fallback copy failed:", fallbackErr);
+      }
+    }
+  };
 
   const addOp = () => {
-    setOps((prev) => [...prev, { id: crypto.randomUUID(), mode: "remove", scope: "start", target: "space" }]);
+    setOps((prev) => [...prev, { id: genId(), mode: "remove", scope: "start", target: "space" }]);
   };
-  const resetOps = () => setOps([]);
+  const resetOps = () => setOps([{ id: genId(), mode: "remove", scope: "start", target: "space" }]);
 
   return (
-    <div className="h-full w-full flex">
+    <div className="flex flex-grow flex-shrink min-w-0 min-h-0">
       {/* 左：输入 */}
       <div className="flex-1 flex flex-col border-r border-border">
         <ContainerHeader>
@@ -167,7 +214,9 @@ export default function LineTransformPanel() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={async () => { try { await navigator.clipboard.writeText(inputText); } catch {} }}
+                onClick={async () => {
+                  await copyToClipboard(inputText);
+                }}
                 className="h-6 w-6 p-0"
               >
                 <Copy className="h-3 w-3" />
@@ -179,21 +228,21 @@ export default function LineTransformPanel() {
           </div>
         </ContainerHeader>
         <ContainerContent>
-          <LineNumberedTextarea value={inputText} onChange={setInputText} placeholder="每行一条..." minHeight={400} />
+          <LineNumberedTextarea value={inputText} onChange={setInputText} placeholder="每行一条..." />
         </ContainerContent>
       </div>
 
       {/* 中：配置 */}
-      <div className="w-[480px] flex flex-col border-r border-border">
+      <div className="w-[480px] flex flex-col border-r border-border flex-shrink-0 overflow-y-auto">
         <ContainerHeader>
           <div className="flex items-center justify-between w-full">
             <h3 className="text-sm font-medium">{"行替换配置"}</h3>
             <div className="flex items-center gap-2">
               <Button variant="ghost" size="sm" onClick={resetOps} className="h-6 px-2">
-                清空
+                {"清空"}
               </Button>
               <Button variant="ghost" size="sm" onClick={addOp} className="h-6 px-2">
-                <Plus className="h-3 w-3" /> 添加
+                <Plus className="h-3 w-3" /> {"添加"}
               </Button>
             </div>
           </div>
@@ -217,10 +266,19 @@ export default function LineTransformPanel() {
           <div className="flex items-center justify-between w-full">
             <h3 className="text-sm font-medium">{"替换结果"}</h3>
             <div className="flex items-center gap-1">
+              <Toggle
+                pressed={removeEmptyLinesEnabled}
+                onPressedChange={setRemoveEmptyLinesEnabled}
+                className="h-6 px-2 text-xs data-[state=on]:bg-blue-500 data-[state=on]:text-white data-[state=on]:hover:bg-blue-600 data-[state=on]:hover:text-white"
+              >
+                {t("Remove Empty Lines")}
+              </Toggle>
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={async () => { try { await navigator.clipboard.writeText(outputText); } catch {} }}
+                onClick={async () => {
+                  await copyToClipboard(outputText);
+                }}
                 className="h-6 w-6 p-0"
               >
                 <Copy className="h-3 w-3" />
@@ -229,7 +287,7 @@ export default function LineTransformPanel() {
           </div>
         </ContainerHeader>
         <ContainerContent>
-          <LineNumberedTextarea value={outputText} readOnly placeholder="结果将在这里显示..." minHeight={400} />
+          <LineNumberedTextarea value={outputText} readOnly placeholder="结果将在这里显示..." />
         </ContainerContent>
       </div>
     </div>
@@ -237,54 +295,53 @@ export default function LineTransformPanel() {
 }
 
 function OpRow({ op, onChange, onRemove, index }: { op: Op; onChange: (o: Op) => void; onRemove: () => void; index: number }) {
-  const isBoth = op.scope === "both";
   return (
     <div className="space-y-3 p-3 border rounded-lg bg-muted/30">
       {/* 第一行：移除/替换切换 */}
       <div className="flex items-center gap-2">
-        <span className="text-xs font-medium text-muted-foreground w-16">操作类型:</span>
+        <span className="text-xs font-medium text-muted-foreground w-16">{"操作类型:"}</span>
         <div className="flex border rounded-md">
           <Toggle
             pressed={op.mode === "remove"}
             onPressedChange={(pressed) => pressed && onChange({ ...op, mode: "remove" })}
             className="h-8 px-3 text-xs"
           >
-            移除
+            {"移除"}
           </Toggle>
           <Toggle
             pressed={op.mode === "replace"}
             onPressedChange={(pressed) => pressed && onChange({ ...op, mode: "replace" })}
             className="h-8 px-3 text-xs"
           >
-            替换
+            {"替换"}
           </Toggle>
         </div>
       </div>
 
       {/* 第二行：前/中/后切换 */}
       <div className="flex items-center gap-2">
-        <span className="text-xs font-medium text-muted-foreground w-16">位置:</span>
+        <span className="text-xs font-medium text-muted-foreground w-16">{"位置:"}</span>
         <div className="flex border rounded-md">
           <Toggle
             pressed={op.scope === "start"}
             onPressedChange={(pressed) => pressed && onChange({ ...op, scope: "start" })}
             className="h-8 px-3 text-xs"
           >
-            前
+            {"前"}
           </Toggle>
           <Toggle
             pressed={op.scope === "center"}
             onPressedChange={(pressed) => pressed && onChange({ ...op, scope: "center", occurrence: op.occurrence ?? "all" })}
             className="h-8 px-3 text-xs"
           >
-            中
+            {"中"}
           </Toggle>
           <Toggle
             pressed={op.scope === "end"}
             onPressedChange={(pressed) => pressed && onChange({ ...op, scope: "end" })}
             className="h-8 px-3 text-xs"
           >
-            后
+            {"后"}
           </Toggle>
         </div>
       </div>
@@ -292,28 +349,28 @@ function OpRow({ op, onChange, onRemove, index }: { op: Op; onChange: (o: Op) =>
       {/* 当选择“中”时，出现“第一个/所有/最后一个” */}
       {op.scope === "center" && (
         <div className="flex items-center gap-2">
-          <span className="text-xs font-medium text-muted-foreground w-16">出现:</span>
+          <span className="text-xs font-medium text-muted-foreground w-16">{"出现:"}</span>
           <div className="flex border rounded-md">
             <Toggle
               pressed={op.occurrence === "first"}
               onPressedChange={(p) => p && onChange({ ...op, occurrence: "first" })}
               className="h-8 px-3 text-xs"
             >
-              第一个
+              {"第一个"}
             </Toggle>
             <Toggle
               pressed={(op.occurrence ?? "all") === "all"}
               onPressedChange={(p) => p && onChange({ ...op, occurrence: "all" })}
               className="h-8 px-3 text-xs"
             >
-              所有
+              {"所有"}
             </Toggle>
             <Toggle
               pressed={op.occurrence === "last"}
               onPressedChange={(p) => p && onChange({ ...op, occurrence: "last" })}
               className="h-8 px-3 text-xs"
             >
-              最后一个
+              {"最后一个"}
             </Toggle>
           </div>
         </div>
@@ -321,21 +378,21 @@ function OpRow({ op, onChange, onRemove, index }: { op: Op; onChange: (o: Op) =>
 
       {/* 第三行：空格/指定字符 切换 */}
       <div className="flex items-center gap-2">
-        <span className="text-xs font-medium text-muted-foreground w-16">目标:</span>
+        <span className="text-xs font-medium text-muted-foreground w-16">{"目标:"}</span>
         <div className="flex border rounded-md">
           <Toggle
             pressed={op.target === "space"}
             onPressedChange={(pressed) => pressed && onChange({ ...op, target: "space" })}
             className="h-8 px-3 text-xs"
           >
-            空格
+            {"空格"}
           </Toggle>
           <Toggle
             pressed={op.target === "custom"}
             onPressedChange={(pressed) => pressed && onChange({ ...op, target: "custom" })}
             className="h-8 px-3 text-xs"
           >
-            指定字符
+            {"指定字符"}
           </Toggle>
         </div>
       </div>
@@ -343,7 +400,7 @@ function OpRow({ op, onChange, onRemove, index }: { op: Op; onChange: (o: Op) =>
       {/* 第四行：输入框 */}
       {op.target === "custom" && (
         <div className="flex items-center gap-2">
-          <span className="text-xs font-medium text-muted-foreground w-16">字符:</span>
+          <span className="text-xs font-medium text-muted-foreground w-16">{"字符:"}</span>
           <div className="flex gap-2 flex-1">
             {op.scope === "start" && (
               <div className="flex items-center gap-2 flex-1">
@@ -354,7 +411,7 @@ function OpRow({ op, onChange, onRemove, index }: { op: Op; onChange: (o: Op) =>
                   placeholder="前置字符"
                 />
                 {countNewlines(op.fromStart) > 0 && (
-                  <span className="text-[10px] px-1 py-0.5 rounded bg-muted text-muted-foreground">↵{countNewlines(op.fromStart)}</span>
+                  <span className="text-[10px] px-1 py-0.5 rounded bg-muted text-muted-foreground">{"↵"}{countNewlines(op.fromStart)}</span>
                 )}
                 <Button
                   variant="ghost"
@@ -362,7 +419,7 @@ function OpRow({ op, onChange, onRemove, index }: { op: Op; onChange: (o: Op) =>
                   className="h-8 px-2"
                   onClick={() => onChange({ ...op, fromStart: (op.fromStart ?? "") + "\n" })}
                 >
-                  +回车
+                  {"+回车"}
                 </Button>
               </div>
             )}
@@ -375,7 +432,7 @@ function OpRow({ op, onChange, onRemove, index }: { op: Op; onChange: (o: Op) =>
                   placeholder="后置字符"
                 />
                 {countNewlines(op.fromEnd) > 0 && (
-                  <span className="text-[10px] px-1 py-0.5 rounded bg-muted text-muted-foreground">↵{countNewlines(op.fromEnd)}</span>
+                  <span className="text-[10px] px-1 py-0.5 rounded bg-muted text-muted-foreground">{"↵"}{countNewlines(op.fromEnd)}</span>
                 )}
                 <Button
                   variant="ghost"
@@ -383,7 +440,7 @@ function OpRow({ op, onChange, onRemove, index }: { op: Op; onChange: (o: Op) =>
                   className="h-8 px-2"
                   onClick={() => onChange({ ...op, fromEnd: (op.fromEnd ?? "") + "\n" })}
                 >
-                  +回车
+                  {"+回车"}
                 </Button>
               </div>
             )}
@@ -396,7 +453,7 @@ function OpRow({ op, onChange, onRemove, index }: { op: Op; onChange: (o: Op) =>
                   placeholder="要匹配的字符"
                 />
                 {countNewlines(op.fromStart) > 0 && (
-                  <span className="text-[10px] px-1 py-0.5 rounded bg-muted text-muted-foreground">↵{countNewlines(op.fromStart)}</span>
+                  <span className="text-[10px] px-1 py-0.5 rounded bg-muted text-muted-foreground">{"↵"}{countNewlines(op.fromStart)}</span>
                 )}
                 <Button
                   variant="ghost"
@@ -404,7 +461,7 @@ function OpRow({ op, onChange, onRemove, index }: { op: Op; onChange: (o: Op) =>
                   className="h-8 px-2"
                   onClick={() => onChange({ ...op, fromStart: (op.fromStart ?? "") + "\n" })}
                 >
-                  +回车
+                  {"+回车"}
                 </Button>
               </div>
             )}
@@ -415,7 +472,7 @@ function OpRow({ op, onChange, onRemove, index }: { op: Op; onChange: (o: Op) =>
       {/* 第五行：替换为 */}
       {op.mode === "replace" && (
         <div className="flex items-center gap-2">
-          <span className="text-xs font-medium text-muted-foreground w-16">替换为:</span>
+          <span className="text-xs font-medium text-muted-foreground w-16">{"替换为:"}</span>
           <div className="flex items-center gap-2 flex-1">
             <Input
               className="h-8 text-sm flex-1"
@@ -424,7 +481,7 @@ function OpRow({ op, onChange, onRemove, index }: { op: Op; onChange: (o: Op) =>
               placeholder="替换为"
             />
             {countNewlines(op.replaceWith) > 0 && (
-              <span className="text-[10px] px-1 py-0.5 rounded bg-muted text-muted-foreground">↵{countNewlines(op.replaceWith)}</span>
+              <span className="text-[10px] px-1 py-0.5 rounded bg-muted text-muted-foreground">{"↵"}{countNewlines(op.replaceWith)}</span>
             )}
             <Button
               variant="ghost"
@@ -432,7 +489,7 @@ function OpRow({ op, onChange, onRemove, index }: { op: Op; onChange: (o: Op) =>
               className="h-8 px-2"
               onClick={() => onChange({ ...op, replaceWith: (op.replaceWith ?? "") + "\n" })}
             >
-              +回车
+              {"+回车"}
             </Button>
           </div>
         </div>
@@ -440,9 +497,7 @@ function OpRow({ op, onChange, onRemove, index }: { op: Op; onChange: (o: Op) =>
 
       {/* 第六行：操作按钮（仅删除） */}
       <div className="flex items-center justify-end">
-        <Button variant="ghost" size="sm" onClick={onRemove} className="h-8 px-3 text-xs text-destructive">
-          删除
-        </Button>
+        <Button variant="ghost" size="sm" onClick={onRemove} className="h-8 px-3 text-xs text-destructive">{"删除"}</Button>
       </div>
     </div>
   );

@@ -8,7 +8,12 @@ import { useStatusStore } from "@/stores/statusStore";
 import { getTree } from "@/stores/treeStore";
 import SearchInput from "./SearchInput";
 
-export default function ViewSearchInput() {
+interface Props {
+  value: string;
+  onClose: () => void;
+}
+
+export default function ViewSearchInput({ value, onClose }: Props) {
   const setRevealPosition = useStatusStore((state) => state.setRevealPosition);
 
   return (
@@ -20,7 +25,6 @@ export default function ViewSearchInput() {
       Item={Item}
       itemHeight={48}
       placeholder={"search_json"}
-      bindShortcut="F"
     />
   );
 }

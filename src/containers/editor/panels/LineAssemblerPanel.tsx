@@ -88,7 +88,7 @@ export default function LineAssemblerPanel() {
   };
 
   return (
-    <div className="h-full w-full flex">
+    <div className="flex flex-grow flex-shrink min-w-0 min-h-0">
       {/* 左侧输入区域 */}
       <div className="flex-1 flex flex-col border-r border-border">
         <ContainerHeader>
@@ -109,7 +109,6 @@ export default function LineAssemblerPanel() {
             value={inputText}
             onChange={(v) => setInputText(v)}
             placeholder="请输入要组装的文本，每行一项..."
-            minHeight={400}
           />
         </ContainerContent>
       </div>
@@ -133,14 +132,14 @@ export default function LineAssemblerPanel() {
               onClick={() => setConfig(emptyConfig)}
               className="h-6 px-2"
             >
-              清空
+              {"清空"}
             </Button>
           </div>
         </ContainerHeader>
         <ContainerContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="prefix" className="text-xs font-medium text-muted-foreground">
-              容器前缀
+              {"容器前缀"}
             </Label>
             <Input
               id="prefix"
@@ -153,7 +152,7 @@ export default function LineAssemblerPanel() {
 
           <div className="space-y-2">
             <Label htmlFor="itemPrefix" className="text-xs font-medium text-muted-foreground">
-              项前缀
+              {"项前缀"}
             </Label>
             <Input
               id="itemPrefix"
@@ -166,7 +165,7 @@ export default function LineAssemblerPanel() {
 
           <div className="space-y-2">
             <Label htmlFor="separator" className="text-xs font-medium text-muted-foreground">
-              项分隔符
+              {"项分隔符"}
             </Label>
             <Input
               id="separator"
@@ -179,7 +178,7 @@ export default function LineAssemblerPanel() {
 
           <div className="space-y-2">
             <Label htmlFor="itemSuffix" className="text-xs font-medium text-muted-foreground">
-              项后缀
+              {"项后缀"}
             </Label>
             <Input
               id="itemSuffix"
@@ -192,7 +191,7 @@ export default function LineAssemblerPanel() {
 
           <div className="space-y-2">
             <Label htmlFor="suffix" className="text-xs font-medium text-muted-foreground">
-              容器后缀
+              {"容器后缀"}
             </Label>
             <Input
               id="suffix"
@@ -236,7 +235,6 @@ export default function LineAssemblerPanel() {
             value={outputText}
             readOnly
             placeholder="组装结果将在这里显示..."
-            minHeight={400}
           />
         </ContainerContent>
       </div>

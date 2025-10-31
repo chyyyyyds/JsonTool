@@ -6,7 +6,7 @@ import { type CommandMode } from "@/stores/statusStore";
 
 export function Container({ children, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className="relative w-full h-full flex flex-col" {...props}>
+    <div className="relative w-full h-full flex flex-col overflow-hidden" {...props}>
       {children}
     </div>
   );
@@ -20,7 +20,7 @@ interface ContainerHeaderProps extends HTMLAttributes<HTMLDivElement> {
 export function ContainerHeader({ children, mode, modeHeaders, ...props }: ContainerHeaderProps) {
   return (
     <>
-      <div className="flex items-center w-full min-h-header px-4" {...props}>
+      <div className="flex items-center w-full sticky top-0 z-10 bg-background px-4 py-3" {...props}>
         {children}
       </div>
       <Separator />
@@ -30,7 +30,7 @@ export function ContainerHeader({ children, mode, modeHeaders, ...props }: Conta
 
 export function ContainerContent({ children, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className="w-full max-h-full flex-grow" {...props}>
+    <div className="w-full flex-grow overflow-y-auto pb-4 px-4" {...props}>
       {children}
     </div>
   );

@@ -10,10 +10,12 @@ import LineNumberedTextarea from "@/containers/editor/components/LineNumberedTex
 import { Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toastSucc } from "@/lib/utils";
+import { Switch } from "@/components/ui/switch";
+import { Toggle } from "@/components/ui/toggle";
 
-function computeSets(a: string, b: string) {
-  const left = a.replace(/\r\n/g, "\n").split("\n");
-  const right = b.replace(/\r\n/g, "\n").split("\n");
+function computeSets(a: string, b: string, ignoreLeftWhitespace: boolean, ignoreRightWhitespace: boolean) {
+  const left = a.replace(/\r\n/g, "\n").split("\n").map(s => ignoreLeftWhitespace ? s.trim() : s);
+  const right = b.replace(/\r\n/g, "\n").split("\n").map(s => ignoreRightWhitespace ? s.trim() : s);
   const leftSet = new Set(left.filter((s) => s.length > 0));
   const rightSet = new Set(right.filter((s) => s.length > 0));
   const onlyLeft: string[] = [];
@@ -35,6 +37,8 @@ export default function LineComparePanel() {
   const t = useTranslations();
   const [leftText, setLeftText] = useState("");
   const [rightText, setRightText] = useState("");
+  const [ignoreLeftWhitespace, setIgnoreLeftWhitespace] = useState(true);
+  const [ignoreRightWhitespace, setIgnoreRightWhitespace] = useState(true);
   const [leftEditing, setLeftEditing] = useState(false);
   const [rightEditing, setRightEditing] = useState(false);
   const leftTextareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -59,7 +63,7 @@ export default function LineComparePanel() {
   const leftLines = useMemo(() => leftText.replace(/\r\n/g, "\n").split("\n"), [leftText]);
   const rightLines = useMemo(() => rightText.replace(/\r\n/g, "\n").split("\n"), [rightText]);
 
-  const { onlyLeft, onlyRight, both } = useMemo(() => computeSets(leftText, rightText), [leftText, rightText]);
+  const { onlyLeft, onlyRight, both } = useMemo(() => computeSets(leftText, rightText, ignoreLeftWhitespace, ignoreRightWhitespace), [leftText, rightText, ignoreLeftWhitespace, ignoreRightWhitespace]);
 
   const copyToClipboard = async (text: string) => {
     try {
@@ -156,6 +160,15 @@ export default function LineComparePanel() {
           <ContainerHeader>
             <div className="flex items-center gap-2">
               <span>{t("left_input")}</span>
+              <div className="flex items-center gap-1 ml-auto">
+                <Toggle
+                  pressed={ignoreLeftWhitespace}
+                  onPressedChange={setIgnoreLeftWhitespace}
+                  className="h-6 px-2 text-xs data-[state=on]:bg-blue-500 data-[state=on]:text-white data-[state=on]:hover:bg-blue-600 data-[state=on]:hover:text-white"
+                >
+                  {"忽略空格"}
+                </Toggle>
+              </div>
               <Button
                 title={t("Copy")}
                 variant="icon-outline"
@@ -172,7 +185,6 @@ export default function LineComparePanel() {
                 value={leftText}
                 onChange={(v) => setLeftText(v)}
                 placeholder={t("left_input") as string}
-                minHeight={300}
               />
             ) : (
               <div
@@ -204,7 +216,7 @@ export default function LineComparePanel() {
                       setLeftEditing(true);
                     }}
                   >
-                    <div className={cn("flex-1 min-w-0 text-sm text-hl-string", "truncate whitespace-nowrap overflow-hidden")}>{line}</div>
+                    <div className={cn("flex-1 min-w-0 text-sm", "truncate whitespace-nowrap overflow-hidden")}>{line}</div>
                     <Button
                       title={t("Copy")}
                       variant="icon-outline"
@@ -230,6 +242,15 @@ export default function LineComparePanel() {
           <ContainerHeader>
             <div className="flex items-center gap-2">
               <span>{t("right_input")}</span>
+              <div className="flex items-center gap-1 ml-auto">
+                <Toggle
+                  pressed={ignoreRightWhitespace}
+                  onPressedChange={setIgnoreRightWhitespace}
+                  className="h-6 px-2 text-xs data-[state=on]:bg-blue-500 data-[state=on]:text-white data-[state=on]:hover:bg-blue-600 data-[state=on]:hover:text-white"
+                >
+                  {"忽略空格"}
+                </Toggle>
+              </div>
               <Button
                 title={t("Copy")}
                 variant="icon-outline"
@@ -246,7 +267,6 @@ export default function LineComparePanel() {
                 value={rightText}
                 onChange={(v) => setRightText(v)}
                 placeholder={t("right_input") as string}
-                minHeight={300}
               />
             ) : (
               <div
@@ -277,7 +297,7 @@ export default function LineComparePanel() {
                       setRightEditing(true);
                     }}
                   >
-                    <div className={cn("flex-1 min-w-0 text-sm text-hl-string", "truncate whitespace-nowrap overflow-hidden")}>{line}</div>
+                    <div className={cn("flex-1 min-w-0 text-sm", "truncate whitespace-nowrap overflow-hidden")}>{line}</div>
                     <Button
                       title={t("Copy")}
                       variant="icon-outline"
@@ -314,7 +334,7 @@ export default function LineComparePanel() {
             </div>
           </ContainerHeader>
           <ContainerContent>
-            <LineNumberedTextarea value={onlyLeft.join("\n")} readOnly minHeight={300} />
+            <LineNumberedTextarea value={onlyLeft.join("\n")} readOnly />
           </ContainerContent>
         </Container>
       </ResizablePanel>
@@ -335,7 +355,7 @@ export default function LineComparePanel() {
             </div>
           </ContainerHeader>
           <ContainerContent>
-            <LineNumberedTextarea value={onlyRight.join("\n")} readOnly minHeight={300} />
+            <LineNumberedTextarea value={onlyRight.join("\n")} readOnly />
           </ContainerContent>
         </Container>
       </ResizablePanel>
@@ -356,7 +376,7 @@ export default function LineComparePanel() {
             </div>
           </ContainerHeader>
           <ContainerContent>
-            <LineNumberedTextarea value={both.join("\n")} readOnly minHeight={300} />
+            <LineNumberedTextarea value={both.join("\n")} readOnly />
           </ContainerContent>
         </Container>
       </ResizablePanel>

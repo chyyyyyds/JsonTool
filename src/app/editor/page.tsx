@@ -7,7 +7,7 @@ import { PricingOverlay } from "@/containers/pricing";
 export default async function Page() {
   return (
     <TooltipProvider delayDuration={0}>
-      <div className="flex h-full w-full">
+      <div className="flex h-full w-full overflow-hidden">
         <SideNav />
         <Separator orientation="vertical" />
         <MainPanel />

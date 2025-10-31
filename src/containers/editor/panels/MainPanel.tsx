@@ -54,11 +54,11 @@ export default function MainPanel() {
 
   // see https://github.com/bvaughn/react-resizable-panels/issues/128#issuecomment-1523343548
   return (
-    <div className="relative w-full h-full flex flex-col min-w-0">
+    <div className="relative w-full h-full flex flex-col min-w-0 overflow-hidden">
       {lineAssemblerEnabled ? (
         <LineAssemblerPanel />
       ) : lineTransformEnabled ? (
-        <LineTransformPanel />
+        <LineTransformPanel visible={lineTransformEnabled} />
       ) : (
         <ResizablePanelGroup
           className="flex-grow"

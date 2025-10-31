@@ -7,6 +7,7 @@ import { useEditorStore } from "@/stores/editorStore";
 import { useConfigFromCookies } from "@/stores/hook";
 import { useStatusStore } from "@/stores/statusStore";
 import { useTranslations } from "next-intl";
+import { useState } from "react";
 import { useShallow } from "zustand/shallow";
 import FullScreenButton from "./FullScreenButton";
 
@@ -21,6 +22,9 @@ export default function RightPanelButtons({ viewMode }: { viewMode: ViewMode }) 
     })),
   );
 
+  const [showViewSearchInput, setShowViewSearchInput] = useState(false);
+  const [viewSearchValue, setViewSearchValue] = useState("");
+
   return (
     <div className="flex items-center pl-2 ml-auto space-x-2">
       {viewMode === ViewMode.Text && (
@@ -34,7 +38,18 @@ export default function RightPanelButtons({ viewMode }: { viewMode: ViewMode }) 
           <SwapButton variant="icon-outline" className="px-2" />
         </>
       )}
-      {viewMode === ViewMode.Graph && <ViewSearchInput />}
+      {viewMode === ViewMode.Graph && (
+        <>
+          {!showViewSearchInput && (
+            <Button variant="icon" size="xs" className="h-7 w-7" onClick={() => setShowViewSearchInput(true)}>
+              {t("search_json")}
+            </Button>
+          )}
+          {showViewSearchInput && (
+            <ViewSearchInput value={viewSearchValue} onClose={() => setShowViewSearchInput(false)} />
+          )}
+        </>
+      )}
       <FullScreenButton />
     </div>
   );
