@@ -15,7 +15,6 @@ import {
   FileUp,
   CircleHelp,
   Share2,
-  SquareStack,
   BarChartBig,
   AlignHorizontalJustifyCenter,
   ArrowLeftToLine,
@@ -23,6 +22,7 @@ import {
   Bug,
   Layers,
   Eraser,
+  ListChecks,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useShallow } from "zustand/shallow";
@@ -36,7 +36,6 @@ import PopoverBtn, { popoverBtnClass } from "./PopoverButton";
 // import SharePopover from "./SharePopover";
 // import StatisticsPopover from "./StatisticsPopover";
 import Toggle from "./Toggle";
-import { ListChecks } from "lucide-react";
 
 export default function SideNav() {
   const [transition, setTransition] = useState(false);
@@ -51,12 +50,6 @@ export default function SideNav() {
     setSideNavExpanded,
     fixSideNav,
     setFixSideNav,
-    enableAutoFormat,
-    enableAutoSort,
-    enableNestParse,
-    setParseOptions,
-    enableSyncScroll,
-    setEnableSyncScroll,
     lineCompareEnabled,
     setLineCompareEnabled,
     lineAssemblerEnabled,
@@ -65,18 +58,11 @@ export default function SideNav() {
     setLineTransformEnabled,
   } = useStatusStore(
     useShallow((state) => {
-      const parseOptions = state._hasHydrated ? state.parseOptions : cc.parseOptions;
       return {
         sideNavExpanded: !!state.sideNavExpanded,
         setSideNavExpanded: state.setSideNavExpanded,
         fixSideNav: state._hasHydrated ? state.fixSideNav : cc.fixSideNav,
         setFixSideNav: state.setFixSideNav,
-        enableAutoFormat: !!parseOptions.format,
-        enableAutoSort: !!parseOptions.sort,
-        enableNestParse: !!parseOptions.nest,
-        setParseOptions: state.setParseOptions,
-        enableSyncScroll: state._hasHydrated ? state.enableSyncScroll : cc.enableSyncScroll,
-        setEnableSyncScroll: state.setEnableSyncScroll,
         lineCompareEnabled: state.lineCompareEnabled,
         setLineCompareEnabled: state.setLineCompareEnabled,
         lineAssemblerEnabled: state.lineAssemblerEnabled,
@@ -86,6 +72,8 @@ export default function SideNav() {
       };
     }),
   );
+
+  const isJsonMode = !lineCompareEnabled && !lineAssemblerEnabled && !lineTransformEnabled;
 
   return (
     <div
@@ -115,34 +103,19 @@ export default function SideNav() {
             <PopoverBtn className="hidden" title={t("Share")} icon={<Share2 className="icon" />} content={<div />} />
           )}
           <Separator className="my-1" />
+          {/* JSON 处理入口 */}
           <Toggle
             icon={<Braces className="icon" />}
-            title={t("Auto Format")}
-            description={t("auto_format_desc")}
-            isPressed={enableAutoFormat}
-            onPressedChange={(pressed) => setParseOptions({ format: pressed })}
+            title={(t as any)("json_process")}
+            description={""}
+            isPressed={isJsonMode}
+            onPressedChange={() => {
+              setLineCompareEnabled(false);
+              setLineAssemblerEnabled(false);
+              setLineTransformEnabled(false);
+            }}
           />
-          <Toggle
-            icon={<SquareStack className="icon" />}
-            title={t("Nested Parse")}
-            description={t("nested_parse_desc")}
-            isPressed={enableNestParse}
-            onPressedChange={(pressed) => setParseOptions({ nest: pressed })}
-          />
-          <Toggle
-            icon={<ArrowDownNarrowWide className="icon" />}
-            title={t("Auto Sort")}
-            description={t("auto_sort_desc")}
-            isPressed={enableAutoSort}
-            onPressedChange={(pressed) => setParseOptions({ sort: pressed ? "asc" : undefined })}
-          />
-          <Toggle
-            icon={<AlignHorizontalJustifyCenter className="icon" />}
-            title={t("sync_reveal")}
-            description={t("sync_reveal_desc")}
-            isPressed={enableSyncScroll}
-            onPressedChange={(pressed) => setEnableSyncScroll(pressed)}
-          />
+          {/* 功能开关：互斥 */}
           <Toggle
             icon={<ListChecks className="icon" />}
             title={t("line_compare")}
@@ -190,13 +163,15 @@ export default function SideNav() {
           {false && <div />}
           <Button
             className="my-1.5"
-            icon={fixSideNav ? <ArrowRightFromLine className="icon" /> : <ArrowLeftToLine className="icon" />}
-            title={t(fixSideNav ? "Expand" : "Collapse")}
-            onClick={() => {
-              setFixSideNav(!fixSideNav);
-              setSideNavExpanded(fixSideNav);
-            }}
-          />
+            title={fixSideNav ? t("Collapse") : t("Expand")}
+            onClick={() => setFixSideNav(!fixSideNav)}
+          >
+            <span className="group-data-[expanded=true]:block hidden">
+              {fixSideNav ? t("Collapse") : t("Expand")}
+            </span>
+            <ArrowLeftToLine className="group-data-[expanded=true]:hidden icon" />
+            <ArrowRightFromLine className="group-data-[expanded=true]:block hidden icon" />
+          </Button>
         </ul>
       </nav>
     </div>
