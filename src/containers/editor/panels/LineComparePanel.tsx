@@ -187,50 +187,8 @@ export default function LineComparePanel() {
                 placeholder={t("left_input") as string}
               />
             ) : (
-              <div
-                className="h-full overflow-auto space-y-1"
-                onClick={(e) => {
-                  // click on blank area -> go end
-                  setPendingFocus({ side: "left", lineIndex: null });
-                  setLeftEditing(true);
-                }}
-                onPaste={(e) => {
-                  const text = e.clipboardData.getData("text");
-                  if (text) {
-                    e.preventDefault();
-                    const appended = text.replace(/\r\n/g, "\n").split("\n");
-                    const next = leftLines.concat(appended);
-                    setLeftText(next.join("\n"));
-                  }
-                }}
-              >
-                {leftLines.map((line, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center gap-1"
-                    onClick={(ev) => {
-                      ev.stopPropagation();
-                      const rect = (ev.currentTarget.firstChild as HTMLElement)?.getBoundingClientRect();
-                      const clickX = rect ? ev.clientX - rect.left : undefined;
-                      setPendingFocus({ side: "left", lineIndex: idx, offsetX: clickX });
-                      setLeftEditing(true);
-                    }}
-                  >
-                    <div className={cn("flex-1 min-w-0 text-sm", "truncate whitespace-nowrap overflow-hidden")}>{line}</div>
-                    <Button
-                      title={t("Copy")}
-                      variant="icon-outline"
-                      size="xs"
-                      className="h-5 w-5 p-0"
-                      onClick={(ev) => {
-                        ev.stopPropagation();
-                        copyToClipboard(line);
-                      }}
-                    >
-                      <Copy className="h-3 w-3" />
-                    </Button>
-                  </div>
-                ))}
+              <div onClick={() => setLeftEditing(true)}>
+                <LineNumberedTextarea value={leftText} readOnly />
               </div>
             )}
           </ContainerContent>
@@ -269,49 +227,8 @@ export default function LineComparePanel() {
                 placeholder={t("right_input") as string}
               />
             ) : (
-              <div
-                className="h-full overflow-auto space-y-1"
-                onClick={() => {
-                  setPendingFocus({ side: "right", lineIndex: null });
-                  setRightEditing(true);
-                }}
-                onPaste={(e) => {
-                  const text = e.clipboardData.getData("text");
-                  if (text) {
-                    e.preventDefault();
-                    const appended = text.replace(/\r\n/g, "\n").split("\n");
-                    const next = rightLines.concat(appended);
-                    setRightText(next.join("\n"));
-                  }
-                }}
-              >
-                {rightLines.map((line, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center gap-1"
-                    onClick={(ev) => {
-                      ev.stopPropagation();
-                      const rect = (ev.currentTarget.firstChild as HTMLElement)?.getBoundingClientRect();
-                      const clickX = rect ? ev.clientX - rect.left : undefined;
-                      setPendingFocus({ side: "right", lineIndex: idx, offsetX: clickX });
-                      setRightEditing(true);
-                    }}
-                  >
-                    <div className={cn("flex-1 min-w-0 text-sm", "truncate whitespace-nowrap overflow-hidden")}>{line}</div>
-                    <Button
-                      title={t("Copy")}
-                      variant="icon-outline"
-                      size="xs"
-                      className="h-5 w-5 p-0"
-                      onClick={(ev) => {
-                        ev.stopPropagation();
-                        copyToClipboard(line);
-                      }}
-                    >
-                      <Copy className="h-3 w-3" />
-                    </Button>
-                  </div>
-                ))}
+              <div onClick={() => setRightEditing(true)}>
+                <LineNumberedTextarea value={rightText} readOnly />
               </div>
             )}
           </ContainerContent>

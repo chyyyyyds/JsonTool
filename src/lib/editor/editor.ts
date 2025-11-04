@@ -21,6 +21,8 @@ export class EditorWrapper {
   scrolling: number;
   tree: Tree;
   delayParseAndSet: DebouncedFunc<(text: string, extraOptions: ParseOptions, resetCursor: boolean) => void>;
+  private hoverProvider?: HoverProvider;
+  private inlayHintsProvider?: InlayHintsProvider;
 
   constructor(editor: editorApi.IStandaloneCodeEditor, kind: Kind) {
     this.editor = editor;
@@ -31,12 +33,18 @@ export class EditorWrapper {
   }
 
   init() {
+    // 清理旧的 provider
+    if (this.inlayHintsProvider) {
+      this.inlayHintsProvider.dispose();
+      this.inlayHintsProvider = undefined;
+    }
+
     this.listenOnChange();
     this.listenOnDidPaste();
     this.listenOnKeyDown();
     this.listenOnDropFile();
-    new HoverProvider(this);
-    new InlayHintsProvider(this);
+    this.hoverProvider = new HoverProvider(this);
+    this.inlayHintsProvider = new InlayHintsProvider(this);
 
     if (this.isMain()) {
       this.listenOnDidChangeCursorPosition();

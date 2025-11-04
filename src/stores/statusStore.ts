@@ -31,6 +31,10 @@ export interface StatusState extends Config {
   lineCompareEnabled: boolean;
   lineAssemblerEnabled: boolean;
   lineTransformEnabled: boolean;
+  lineCompareSnapshot?: { left: string; right: string };
+  lineAssemblerSnapshot?: { input: string; config: any };
+  lineTransformSnapshot?: { input: string; ops: any };
+  jsonEditorSnapshot?: string;
 
   incrEditorInitCount: () => number;
   setLeftPanelWidth: (width: number) => void;
@@ -53,6 +57,10 @@ export interface StatusState extends Config {
   setLineCompareEnabled: (enable: boolean) => void;
   setLineAssemblerEnabled: (enable: boolean) => void;
   setLineTransformEnabled: (enable: boolean) => void;
+  setLineCompareSnapshot: (snap?: { left: string; right: string }) => void;
+  setLineAssemblerSnapshot: (snap?: { input: string; config: any }) => void;
+  setLineTransformSnapshot: (snap?: { input: string; ops: any }) => void;
+  setJsonEditorSnapshot: (text?: string) => void;
   toggleFoldNode: (nodeId: string) => void;
   toggleFoldSibingsNode: (nodeId: string) => void;
   resetFoldStatus: () => void;
@@ -70,6 +78,10 @@ const initialStates: Omit<StatusState, FunctionKeys<StatusState>> = {
   lineCompareEnabled: false,
   lineAssemblerEnabled: false,
   lineTransformEnabled: false,
+  lineCompareSnapshot: undefined,
+  lineAssemblerSnapshot: undefined,
+  lineTransformSnapshot: undefined,
+  jsonEditorSnapshot: undefined,
 };
 
 export const useStatusStore = create<StatusState>()(
@@ -187,6 +199,22 @@ export const useStatusStore = create<StatusState>()(
 
       setLineTransformEnabled(enable: boolean) {
         set({ lineTransformEnabled: enable });
+      },
+
+      setLineCompareSnapshot(snap?: { left: string; right: string }) {
+        set({ lineCompareSnapshot: snap });
+      },
+
+      setLineAssemblerSnapshot(snap?: { input: string; config: any }) {
+        set({ lineAssemblerSnapshot: snap });
+      },
+
+      setLineTransformSnapshot(snap?: { input: string; ops: any }) {
+        set({ lineTransformSnapshot: snap });
+      },
+
+      setJsonEditorSnapshot(text?: string) {
+        set({ jsonEditorSnapshot: text });
       },
 
       toggleFoldNode(nodeId: string) {

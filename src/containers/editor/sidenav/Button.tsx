@@ -11,13 +11,14 @@ export const btnVariants = cva(
 interface ButtonProps extends VariantProps<typeof btnVariants> {
   title: string;
   onClick?: () => void;
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
   className?: string;
+  children?: React.ReactNode;
 }
 
-const Button = forwardRef<ElementRef<typeof RButton>, ButtonProps>(({ icon, title, onClick, className }, ref) => (
+const Button = forwardRef<ElementRef<typeof RButton>, ButtonProps>(({ icon, title, onClick, className, children }, ref) => (
   <RButton ref={ref} className={cn(btnVariants({}), className)} title={title} onClick={onClick}>
-    <IconLabel icon={icon} title={title} />
+    {children || (icon && <IconLabel icon={icon} title={title} />)}
   </RButton>
 ));
 Button.displayName = "Button";

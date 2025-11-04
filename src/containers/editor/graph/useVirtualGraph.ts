@@ -31,15 +31,29 @@ export default function useVirtualGraph() {
       usable: state.usable("graphModeView"),
     })),
   );
-  const { isGraphView, resetFoldStatus, setShowPricingOverlay } = useStatusStore(
+  const { isGraphView, resetFoldStatus, setShowPricingOverlay, lineCompareEnabled, lineAssemblerEnabled, lineTransformEnabled } = useStatusStore(
     useShallow((state) => ({
       isGraphView: state.viewMode === ViewMode.Graph,
       resetFoldStatus: state.resetFoldStatus,
       setShowPricingOverlay: state.setShowPricingOverlay,
+      lineCompareEnabled: state.lineCompareEnabled,
+      lineAssemblerEnabled: state.lineAssemblerEnabled,
+      lineTransformEnabled: state.lineTransformEnabled,
     })),
   );
 
+  // 检查是否在 JSON 处理模式（不是行比较、行组装、行替换）
+  const isJsonProcessingMode = !lineCompareEnabled && !lineAssemblerEnabled && !lineTransformEnabled;
+
   useEffect(() => {
+    // 当离开图形视图或切换到其他面板时，清空图形数据
+    if (!isGraphView || !isJsonProcessingMode) {
+      setNodes([]);
+      setEdges([]);
+      console.l("clear graph view", { isGraphView, isJsonProcessingMode });
+      return;
+    }
+
     if (!(window.worker && isGraphView)) {
       console.l("skip graph render:", isGraphView, treeVersion);
       return;
@@ -85,7 +99,7 @@ export default function useVirtualGraph() {
       );
       nodes.length > 0 && count("graphModeView");
     })();
-  }, [usable, isGraphView, treeVersion]);
+  }, [usable, isGraphView, isJsonProcessingMode, treeVersion]);
 
   return {
     nodes,
